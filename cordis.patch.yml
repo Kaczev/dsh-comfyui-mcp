@@ -1,0 +1,4 @@
+- insert:
+    - id: dsh-comfyui-mcp
+      name: dsh-comfyui-mcp
+      config: {}

@@ -1,0 +1,3 @@
+Original vector artwork, authored as SVG (not model-generated).
+Design prompt: A compact ComfyUI-to-DSH bridge icon, rounded midnight-navy square, mint node path connecting two lavender endpoints, small white inference spark, clean legible geometry at 24px, no lettering, no upstream logo imitation.
+License: MIT, same as this plugin. The canonical composition is embedded in design/plugin.html.
