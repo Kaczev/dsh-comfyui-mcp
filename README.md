@@ -23,9 +23,55 @@ ComfyUI 工具来自 [artokun/comfyui-mcp](https://github.com/artokun/comfyui-mc
 
 ## 使用
 
-`list_tools` 和 `describe_tool` 只发现工具，不启动 ComfyUI 或加载模型。先读取工具 schema，再用 `call_tool` 执行业务工具。原生 Krea2 API 工作流使用上游 `enqueue_workflow`；模型名称和工作流须匹配现有 ComfyUI 安装。结果保留上游 MCP 内容，包括图片和本地保存路径。
+`list_tools` 和 `describe_tool` 只发现工具，不启动 ComfyUI 或加载模型。先读取工具 schema，再用 `call_tool` 执行业务工具。原生 Krea2 API 工作流使用上游 `enqueue_workflow`；模型名称和工作流须匹配现有 ComfyUI 安装。结果保留上游 MCP 内容，包括图片和本地保存路径。本机 Krea 2 的提示词写法、采样参数与现成工作流见下文 [技能：krea2-image-prompt](#技能krea2-image-prompt)。
 
 `runtime` 提供 `status`、`test`、`start`、`stop`、`free`。状态查询和连接测试不启动进程。开启按需启动且服务未运行时，页面显示「未运行 · 按需启动待命」；执行生图工具时才会启动。生成完成后使用 `stop` 释放插件自有进程；`free` 请求当前连接实例卸载模型，可能影响该实例的其他使用者。
+
+## 模型与工作流的决定权
+
+插件和上游都不替你选模型。四条路径的决定方各不相同：
+
+- `enqueue_workflow`（`action:"enqueue"`）：由调用方提交的 API 工作流决定，`UNETLoader` / `CLIPLoader` / `VAELoader` 里写什么文件就加载什么；seed 按原值使用，不随机化。
+- `generate_image`（`action:"image"`）：由上游自建 txt2img 图并**自动挑选 checkpoint**——读 safetensors 头部判断是否含文本编码器，跳过视频类模型；其余参数来自默认值（配置文件 → `COMFYUI_DEFAULT_*` 环境变量 → 运行时 `get_defaults`，优先级递增）。没有可用 checkpoint 时会直接报错。Krea 2 是 UNet + CLIP + VAE 三件套、不是 checkpoint 模型，因此**不走这条路径**。
+- `enqueue_workflow`（`action:"run_template"`）：由 pack 内的 `workflow.json` 决定，模型名是写死的常量；pack 依赖的自定义节点若被启动参数禁用则无法执行。
+- `action:"rerun"`：复用历史中的工作流，seed 默认重新随机。
+
+默认值配置文件位于 `%XDG_CONFIG_HOME%`（缺省 `~/.config`）下的 `comfyui-mcp/config.json`。
+
+## 技能：krea2-image-prompt
+
+`skills/krea2-image-prompt/` 是一份面向本机 Krea 2 Turbo 的出图技能，教会代理「本机这套模型该怎么写提示词、怎么拼工作流、怎么后处理」，覆盖 UI 图标、背景、空状态、角色立绘、纹理图案等位图素材场景。
+
+```
+skills/krea2-image-prompt/
+├── SKILL.md                  # 入口：机器事实、采样参数、提示词硬规则、六段骨架、调用路径、故障速查
+├── reference/recipes.md      # 分类配方（图标/背景/空状态/角色/图案/UI 整屏…）与实测结论
+├── reference/experiments.md  # 对比实验记录与耗时基线
+├── reference/workflow.json   # 可直接提交的 API 工作流（原生节点，无自定义节点依赖）
+└── scripts/                  # krea.py 出图、batch.py 批量、key.py 色键抠透明底
+```
+
+**路径与发现机制。** DSH 的技能发现根有两类：用户级 `$DSH_HOME/skills`（缺省 `~/.dsh/skills`）与项目级 `<工作目录>/.agents/skills`；仓库里的 `skills/` 本身不是发现根。本技能属于「只有这台机器有对应 MCP」的那种，因此装到**用户级全局根**：真身留在 `skills/`（进版本库），`~/.dsh/skills/krea2-image-prompt` 是指向它的 **Windows 目录联结点（junction）**——单一副本，任意项目都能用，也不占用跨工具的 `~/.agents`。克隆本仓库到新机器、或仓库改名搬家后联结点失效，重建：
+
+```powershell
+New-Item -ItemType Junction -Path "$HOME\.dsh\skills\krea2-image-prompt" -Target "<仓库路径>\skills\krea2-image-prompt"
+```
+
+**触发方式。** 任务涉及「画图标 / 画背景 / 生成角色素材 / 做纹理」时自动加载；也可用 `skill` 工具或 `/krea2-image-prompt` 显式调用。
+
+**直接使用脚本。**
+
+```sh
+cd skills/krea2-image-prompt
+python scripts/krea.py --prompt "a flat two-color vector icon of a whale" --w 1024 --h 1024
+python scripts/key.py in.png out.png      # 纯色底 → 透明 PNG
+```
+
+脚本通过 HTTP 直连 ComfyUI，服务地址取 `COMFY_URL` 环境变量，默认 `http://127.0.0.1:8188`。技能假定本机已备好 `krea2_turbo_fp8_scaled.safetensors`、`qwen3vl_4b_fp8_scaled.safetensors`、`qwen_image_vae.safetensors`，且不依赖任何自定义节点——因此插件按需启动时固定携带的 `--disable-all-custom-nodes` 不影响它。
+
+**与启动方式的关系。** 服务若已由绘世等启动器在 `url` 上运行，插件只探测和连接，启动器里的端口、自定义节点、显存参数全部生效；只有插件**自己**拉起进程时才会追加自己的启动参数。技能里的实测数据来自插件自有启动的精简实例。
+
+技能目录属于仓库内资产，不在 `package.json` 的 `files` 白名单中，因此不随 npm 包分发。
 
 ## 禁用、卸载与迁移
 
