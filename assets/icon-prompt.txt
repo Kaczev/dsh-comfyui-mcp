@@ -1,3 +1,5 @@
-Original vector artwork, authored as SVG (not model-generated).
-Design prompt: A compact ComfyUI-to-DSH bridge icon, rounded midnight-navy square, mint node path connecting two lavender endpoints, small white inference spark, clean legible geometry at 24px, no lettering, no upstream logo imitation.
-License: MIT, same as this plugin. The canonical composition is embedded in design/plugin.html.
+Krea 2 Turbo generated artwork, 2026-10-26.
+Prompt: A minimal vector-style icon for a creative workflow bridge: three softly rounded indigo nodes connected by a single flowing turquoise ribbon forming an abstract C, one small four-point white sparkle at the upper right. Bold simple geometric silhouette, crisp edges, centered front view, generous padding, refined modern software brand mark, limited indigo and mint palette, completely flat warm off-white background, no text
+Model: krea2_turbo_fp8_scaled.safetensors; seed 261026; 1024x1024; 8 steps; CFG 1; er_sde/simple.
+Source: v016_00001_.png; icon.svg embeds the same raster artwork.
+License: MIT, same as this plugin.

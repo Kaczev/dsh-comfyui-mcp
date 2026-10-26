@@ -8,7 +8,7 @@ ComfyUI 工具来自 [artokun/comfyui-mcp](https://github.com/artokun/comfyui-mc
 
 ## 安装与配置
 
-需要 Node.js 22 及兼容的 DSH（当前声明为 `>=0.2.1-rc.3 <0.3.0`）。在 DSH 插件管理器中安装 `dsh-comfyui-mcp`（指定版本可填 `dsh-comfyui-mcp@0.1.5`），然后启用组件。也支持安装本地目录或 `.tgz`。不要另外添加同名 MCP 桥。
+需要 Node.js 22 及兼容的 DSH（当前声明为 `>=0.2.1-rc.3 <0.3.0`）。在 DSH 插件管理器中安装 `dsh-comfyui-mcp`（指定版本可填 `dsh-comfyui-mcp@0.1.6`），然后启用组件。也支持安装本地目录或 `.tgz`。不要另外添加同名 MCP 桥。
 
 打开「插件 → ComfyUI MCP」，点击「测试连接」探测现有服务。在同页下方的「运行配置」表单设置：
 
@@ -20,6 +20,14 @@ ComfyUI 工具来自 [artokun/comfyui-mcp](https://github.com/artokun/comfyui-mc
 - `startupTimeoutMs`：默认 120000，范围 1000–600000 毫秒。
 
 本地启动仅接受回环 HTTP 地址，固定禁用浏览器自动打开、自定义节点和 API 节点。已有远程实例不受这些启动参数影响。模型与 Python 环境需由用户事先准备，本插件不自动安装或更新它们。
+
+## 工具懒加载
+
+`lazyTools` 默认开启。代理最初只看到 `comfyui_load_tools`；需要生图、工作流、图片读取或运行管理时，调用它即可为当前代理加载 `runtime`、`list_tools`、`describe_tool`、`call_tool`。加载不会启动 ComfyUI 或加载模型，其他代理仍保持自己的加载状态。代理重建后可再次调用加载入口。
+
+在插件详情页「运行配置」顶部关闭「工具懒加载」并保存，即直接提供原来的 4 个工具。开关与 `autoStart` 独立：前者控制工具定义何时进入模型上下文，后者控制是否允许启动本地进程。配置在代理下一步执行时生效。
+
+这项优化将未使用 ComfyUI 时的 4 个工具定义减少为 1 个加载入口；首次使用会多一次工具调用。加载后不再节省这 4 个定义，也不承诺固定 token 降幅。工具动态增加由 Harness 的注册与会话记录机制处理；支持历史工具更新的模型路由可使用原生增量声明，其余路由使用当前工具列表，插件不直接改写请求字段。
 
 ## 使用
 
@@ -89,7 +97,7 @@ npm run pack:check
 npm pack
 ```
 
-DSH 提供的 peer 包需在插件运行环境中可解析。安装发布包时由 DSH 管理依赖；任何待运行的依赖构建脚本都应先取得用户许可。包采用文件白名单，不包含模型、Python、工作流、生成图片、凭据或个人配置。图标是原创 SVG，设计提示词保存在 `assets/icon-prompt.txt`，使用 DSH 的 `./icon` 导出。
+DSH 提供的 peer 包需在插件运行环境中可解析。安装发布包时由 DSH 管理依赖；任何待运行的依赖构建脚本都应先取得用户许可。包采用文件白名单，不包含模型、Python、工作流、生成图片、凭据或个人配置。图标由本机 Krea 2 Turbo 生成并缩放，SVG 内嵌同一位图；设计提示词保存在 `assets/icon-prompt.txt`，使用 DSH 的 `./icon` 导出。
 
 ## 限制与安全
 
