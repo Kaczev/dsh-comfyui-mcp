@@ -10,4 +10,5 @@ ComfyUI 的 DSH 插件封装；业务工具由上游 MCP 提供。
 - [server.mjs](server.mjs)：上游工具代理和运行管理。
 - [design/plugin.html](design/plugin.html)：配置页面的可交互视觉参考。
 - [test/](test/)：Node 测试；运行 `npm test`。
+- [test/client-locale.test.mjs](test/client-locale.test.mjs)：语言资源与元数据共存、重复挂载及清理回归。
 - [assets/icon-prompt.txt](assets/icon-prompt.txt)：Krea 图标生成参数。
