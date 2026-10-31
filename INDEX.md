@@ -13,3 +13,6 @@ ComfyUI 的 DSH 插件封装；业务工具由上游 MCP 提供。
 - [test/](test/)：Node 测试；运行 `npm test`。
 - [test/client-locale.test.mjs](test/client-locale.test.mjs)：语言资源与元数据共存、重复挂载及清理回归。
 - [assets/icon-prompt.txt](assets/icon-prompt.txt)：Krea 图标生成参数。
+
+- [visual-asset-production](skills/visual-asset-production/SKILL.md)：工具选择及目标场景验收。
+- [krea2-image-prompt](skills/krea2-image-prompt/SKILL.md)：Krea 工作流及历史实测。

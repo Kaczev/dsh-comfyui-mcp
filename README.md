@@ -108,3 +108,10 @@ DSH 提供的 peer 包需在插件运行环境中可解析。安装发布包时�
 ## 许可证
 
 本项目采用 MIT。上游 `comfyui-mcp` 为 MIT，版权归 Arthur R. Longbottom (artokun)。参见 `THIRD_PARTY_NOTICES.md`。依赖通过包管理器安装，不将上游依赖代码或模型整合进发布包；各依赖许可证继续适用。
+
+## 按需技能目录
+
+- [visual-asset-production](skills/visual-asset-production/SKILL.md)：工具选择及目标场景验收。
+- [krea2-image-prompt](skills/krea2-image-prompt/SKILL.md)：Krea 工作流及历史实测。
+
+这些技能需单独复制或链接到 `$DSH_HOME/skills/<技能名>`（缺省 `~/.dsh/skills`）；安装 MCP 插件不会安装它们。目录联接保留单一源，移动仓库后需重建。安装后在新会话确认发现，并用 `skill` 加载。跨技能引用需同时安装对应技能。
