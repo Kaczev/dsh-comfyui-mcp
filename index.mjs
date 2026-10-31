@@ -5,8 +5,9 @@ import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { createConfiguredRuntime } from './configured-runtime.mjs';
 import { installLazyTools } from './lazy-tools.mjs';
+import { installPackagedSkills } from './packaged-skills.mjs';
 export const name='dsh-comfyui-mcp';
-export const inject=['tools','webServer','agents'];
+export const inject=['tools','webServer','agents','skills'];
 export const Config=z.object({
  lazyTools:z.boolean().default(true).description('Load the three ComfyUI tools only when requested by each agent. Does not start ComfyUI.'),
  url:z.string().default('http://127.0.0.1:8188').description('ComfyUI HTTP(S) address; default is loopback.'),
@@ -17,6 +18,7 @@ export const Config=z.object({
  startupTimeoutMs:z.number().min(1000).max(600000).default(120000)
 }).volatile();
 export async function apply(ctx,config){
+ installPackagedSkills(ctx,new URL('./skills/',import.meta.url));
  const runtime=createConfiguredRuntime(()=>config.get());const token=randomBytes(32).toString('hex');let disposed=false;
  const control=createServer(async(req,res)=>{res.setHeader('Content-Type','application/json');try{if(req.method!=='POST'||req.headers.authorization!=='Bearer '+token){res.writeHead(403);return res.end('{}');}const action=req.url.slice(1);if(!['status','start','stop','free','config'].includes(action))throw Error('Unknown action');const value=await runtime.run(action);res.end(JSON.stringify(value));}catch(e){res.writeHead(500);res.end(JSON.stringify({error:e.message}));}});
  await new Promise((resolve,reject)=>{control.once('error',reject);control.listen(0,'127.0.0.1',resolve);});

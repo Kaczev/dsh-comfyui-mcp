@@ -8,7 +8,7 @@ ComfyUI 工具来自 [artokun/comfyui-mcp](https://github.com/artokun/comfyui-mc
 
 ## 安装与配置
 
-需要 Node.js 22 及兼容的 DSH（当前声明为 `>=0.2.1-rc.3 <0.3.0`）。在 DSH 插件管理器中安装 `dsh-comfyui-mcp`（指定版本可填 `dsh-comfyui-mcp@0.1.8`），然后启用组件。也支持安装本地目录或 `.tgz`。不要另外添加同名 MCP 桥。
+需要 Node.js 22 及兼容的 DSH（当前声明为 `>=0.2.1-rc.3 <0.3.0`）。在 DSH 插件管理器中安装 `dsh-comfyui-mcp`（指定版本可填 `dsh-comfyui-mcp@0.1.9`），然后启用组件。也支持安装本地目录或 `.tgz`。不要另外添加同名 MCP 桥。
 
 打开「插件 → ComfyUI MCP」，点击「测试连接」探测现有服务。在同页下方的「运行配置」表单设置：
 
@@ -59,11 +59,7 @@ skills/krea2-image-prompt/
 └── scripts/                  # krea.py 出图、batch.py 批量、key.py 色键抠透明底
 ```
 
-**路径与发现机制。** DSH 的技能发现根有两类：用户级 `$DSH_HOME/skills`（缺省 `~/.dsh/skills`）与项目级 `<工作目录>/.agents/skills`；仓库里的 `skills/` 本身不是发现根。本技能属于「只有这台机器有对应 MCP」的那种，因此装到**用户级全局根**：真身留在 `skills/`（进版本库），`~/.dsh/skills/krea2-image-prompt` 是指向它的 **Windows 目录联结点（junction）**——单一副本，任意项目都能用，也不占用跨工具的 `~/.agents`。克隆本仓库到新机器、或仓库改名搬家后联结点失效，重建：
-
-```powershell
-New-Item -ItemType Junction -Path "$HOME\.dsh\skills\krea2-image-prompt" -Target "<仓库路径>\skills\krea2-image-prompt"
-```
+**路径与发现机制。** 这些技能随 npm 包分发，由插件启用时注册，禁用或卸载时撤销；正文仍按需加载，资源路径指向包内目录。无需另建用户级副本或目录联接。旧版已有的同名本地入口应核对来源后移到技能扫描范围之外备份，不删除技能正文。独立用户技能不会被插件改写或删除；同名条目遵循宿主优先级，禁用插件后用户条目仍可使用。跨插件技能引用需要启用对应插件。
 
 **触发方式。** 任务涉及「画图标 / 画背景 / 生成角色素材 / 做纹理」时自动加载；也可用 `skill` 工具或 `/krea2-image-prompt` 显式调用。
 
@@ -79,7 +75,7 @@ python scripts/key.py in.png out.png      # 纯色底 → 透明 PNG
 
 **与启动方式的关系。** 服务若已由绘世等启动器在 `url` 上运行，插件只探测和连接，启动器里的端口、自定义节点、显存参数全部生效；只有插件**自己**拉起进程时才会追加自己的启动参数。技能里的实测数据来自插件自有启动的精简实例。
 
-技能目录属于仓库内资产，不在 `package.json` 的 `files` 白名单中，因此不随 npm 包分发。
+技能目录包含在 `package.json` 的 `files` 白名单中，随 npm 包分发；技能中的本机模型参数与实测记录不是新机器的环境保证。
 
 ## 禁用、卸载与迁移
 
@@ -97,7 +93,7 @@ npm run pack:check
 npm pack
 ```
 
-DSH 提供的 peer 包需在插件运行环境中可解析。安装发布包时由 DSH 管理依赖；任何待运行的依赖构建脚本都应先取得用户许可。包采用文件白名单，不包含模型、Python、工作流、生成图片、凭据或个人配置。图标由 Krea 2 Turbo 生成，经 Photoshop 调色、缩放和锐化，再清除四角连通白底并输出 256 × 256 RGBA PNG；SVG 内嵌同一位图；设计提示词保存在 `assets/icon-prompt.txt`，使用 DSH 的 `./icon` 导出。
+DSH 提供的 peer 包需在插件运行环境中可解析。安装发布包时由 DSH 管理依赖；任何待运行的依赖构建脚本都应先取得用户许可。包采用文件白名单，包含技能参考用的 API 工作流与辅助脚本，不包含模型、Python 运行时、生成图片、凭据或个人配置。图标由 Krea 2 Turbo 生成，经 Photoshop 调色、缩放和锐化，再清除四角连通白底并输出 256 × 256 RGBA PNG；SVG 内嵌同一位图；设计提示词保存在 `assets/icon-prompt.txt`，使用 DSH 的 `./icon` 导出。
 
 ## 限制与安全
 
@@ -114,4 +110,4 @@ DSH 提供的 peer 包需在插件运行环境中可解析。安装发布包时�
 - [visual-asset-production](skills/visual-asset-production/SKILL.md)：工具选择及目标场景验收。
 - [krea2-image-prompt](skills/krea2-image-prompt/SKILL.md)：Krea 工作流及历史实测。
 
-这些技能需单独复制或链接到 `$DSH_HOME/skills/<技能名>`（缺省 `~/.dsh/skills`）；安装 MCP 插件不会安装它们。目录联接保留单一源，移动仓库后需重建。安装后在新会话确认发现，并用 `skill` 加载。跨技能引用需同时安装对应技能。
+这些技能随 npm 包分发，由插件启用时注册，禁用或卸载时撤销；正文仍按需加载，资源路径指向包内目录。无需另建用户级副本或目录联接。旧版已有的同名本地入口应核对来源后移到技能扫描范围之外备份，不删除技能正文。独立用户技能不会被插件改写或删除；同名条目遵循宿主优先级，禁用插件后用户条目仍可使用。跨插件技能引用需要启用对应插件。

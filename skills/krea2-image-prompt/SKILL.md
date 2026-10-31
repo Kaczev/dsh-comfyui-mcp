@@ -61,7 +61,7 @@ Flat vector app icon of a friendly blue whale, thick rounded dark navy outlines,
 
 ## 三条调用路径
 
-起手检查：ComfyUI 没在 8188 上响应就先 `runtime start`（MCP），或直接启动 `C:\Users\Kaczev\LocalAI\ComfyUI-aki-v3.2`。脚本默认连 `http://127.0.0.1:8188`，可用 `COMFY_URL` 覆盖；脚本都在本 skill 目录的 `scripts/` 下，用绝对路径或先 cd 进去。
+起手检查：ComfyUI 没在配置地址上响应时，先核对插件配置，再按已授权的启动方式执行 `runtime start`（MCP），或使用用户自己的 ComfyUI 启动器。脚本默认连 `http://127.0.0.1:8188`，可用 `COMFY_URL` 覆盖；脚本都在本 skill 目录的 `scripts/` 下，用绝对路径或先 cd 进去。
 
 1. **MCP（正式路径）**：`enqueue_workflow action:"enqueue"` 传 API 格式 graph（`reference/workflow.json`），再 `get_history action:"list"` 取图。已验证能拿到 prompt_id 并出图。
 2. **脚本快跑（本机迭代最快）**：
