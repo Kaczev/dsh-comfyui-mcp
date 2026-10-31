@@ -8,7 +8,7 @@ ComfyUI 工具来自 [artokun/comfyui-mcp](https://github.com/artokun/comfyui-mc
 
 ## 安装与配置
 
-需要 Node.js 22 及兼容的 DSH（当前声明为 `>=0.2.1-rc.3 <0.3.0`）。在 DSH 插件管理器中安装 `dsh-comfyui-mcp`（指定版本可填 `dsh-comfyui-mcp@0.1.6`），然后启用组件。也支持安装本地目录或 `.tgz`。不要另外添加同名 MCP 桥。
+需要 Node.js 22 及兼容的 DSH（当前声明为 `>=0.2.1-rc.3 <0.3.0`）。在 DSH 插件管理器中安装 `dsh-comfyui-mcp`（指定版本可填 `dsh-comfyui-mcp@0.1.8`），然后启用组件。也支持安装本地目录或 `.tgz`。不要另外添加同名 MCP 桥。
 
 打开「插件 → ComfyUI MCP」，点击「测试连接」探测现有服务。在同页下方的「运行配置」表单设置：
 
@@ -23,15 +23,15 @@ ComfyUI 工具来自 [artokun/comfyui-mcp](https://github.com/artokun/comfyui-mc
 
 ## 工具懒加载
 
-`lazyTools` 默认开启。代理最初只看到 `comfyui_load_tools`；需要生图、工作流、图片读取或运行管理时，调用它即可为当前代理加载 `runtime`、`list_tools`、`describe_tool`、`call_tool`。加载不会启动 ComfyUI 或加载模型，其他代理仍保持自己的加载状态。代理重建后可再次调用加载入口。
+`lazyTools` 默认开启。代理最初只看到 `comfyui_load_tools`；调用后为当前代理加载 `runtime`、`discover`、`call_tool`。加载不会启动 ComfyUI 或加载模型，其他代理保持自己的加载状态。代理重建后可再次加载。
 
-在插件详情页「运行配置」顶部关闭「工具懒加载」并保存，即直接提供原来的 4 个工具。开关与 `autoStart` 独立：前者控制工具定义何时进入模型上下文，后者控制是否允许启动本地进程。配置在代理下一步执行时生效。
+关闭「工具懒加载」并保存，代理下一步便直接获得这 3 个工具。开关与 `autoStart` 独立：前者控制工具定义何时进入模型上下文，后者控制是否允许启动本地进程。
 
-这项优化将未使用 ComfyUI 时的 4 个工具定义减少为 1 个加载入口；首次使用会多一次工具调用。加载后不再节省这 4 个定义，也不承诺固定 token 降幅。工具动态增加由 Harness 的注册与会话记录机制处理；支持历史工具更新的模型路由可使用原生增量声明，其余路由使用当前工具列表，插件不直接改写请求字段。
+未加载时只有 1 个入口；加载后保留入口及 3 个工具。0.1.8 将搜索目录和读取参数合并为 `discover`，原来的 `list_tools`、`describe_tool` 不再出现在工具列表中；服务器仍接受旧名称，供已记录的 MCP 调用重放。插件不直接改写模型请求字段，也不承诺固定 token 降幅。
 
 ## 使用
 
-`list_tools` 和 `describe_tool` 只发现工具，不启动 ComfyUI 或加载模型。先读取工具 schema，再用 `call_tool` 执行业务工具。原生 Krea2 API 工作流使用上游 `enqueue_workflow`；模型名称和工作流须匹配现有 ComfyUI 安装。结果保留上游 MCP 内容，包括图片和本地保存路径。本机 Krea 2 的提示词写法、采样参数与现成工作流见下文 [技能：krea2-image-prompt](#技能krea2-image-prompt)。
+用 `discover` 的 `search` / `category` 筛选目录，或只传 `name` 读取指定工具的完整 schema。这两种操作都不启动 ComfyUI 或加载模型。然后用 `call_tool` 执行业务工具。原生 Krea2 API 工作流使用上游 `enqueue_workflow`；模型名称和工作流须匹配现有安装。结果保留上游 MCP 内容，包括图片和保存路径。本机 Krea 2 的提示词、采样参数与工作流见下文 [技能：krea2-image-prompt](#技能krea2-image-prompt)。
 
 `runtime` 提供 `status`、`test`、`start`、`stop`、`free`。状态查询和连接测试不启动进程。开启按需启动且服务未运行时，页面显示「未运行 · 按需启动待命」；执行生图工具时才会启动。生成完成后使用 `stop` 释放插件自有进程；`free` 请求当前连接实例卸载模型，可能影响该实例的其他使用者。
 
@@ -97,7 +97,7 @@ npm run pack:check
 npm pack
 ```
 
-DSH 提供的 peer 包需在插件运行环境中可解析。安装发布包时由 DSH 管理依赖；任何待运行的依赖构建脚本都应先取得用户许可。包采用文件白名单，不包含模型、Python、工作流、生成图片、凭据或个人配置。图标由本机 Krea 2 Turbo 生成并缩放，SVG 内嵌同一位图；设计提示词保存在 `assets/icon-prompt.txt`，使用 DSH 的 `./icon` 导出。
+DSH 提供的 peer 包需在插件运行环境中可解析。安装发布包时由 DSH 管理依赖；任何待运行的依赖构建脚本都应先取得用户许可。包采用文件白名单，不包含模型、Python、工作流、生成图片、凭据或个人配置。图标由 Krea 2 Turbo 生成，经 Photoshop 调色、缩放和锐化，再清除四角连通白底并输出 256 × 256 RGBA PNG；SVG 内嵌同一位图；设计提示词保存在 `assets/icon-prompt.txt`，使用 DSH 的 `./icon` 导出。
 
 ## 限制与安全
 

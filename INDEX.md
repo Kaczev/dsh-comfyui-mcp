@@ -7,6 +7,7 @@ ComfyUI 的 DSH 插件封装；业务工具由上游 MCP 提供。
 - [lazy-tools.mjs](lazy-tools.mjs)：代理作用域的工具发现开关与清理。
 - [client.js](client.js)：插件详情页和官方配置表单。
 - [runtime.mjs](runtime.mjs)、[configured-runtime.mjs](configured-runtime.mjs)：进程生命周期与配置切换。
+- [tool-router.mjs](tool-router.mjs)：三入口 schema、只读发现路由和旧调用兼容；[回归测试](test/tool-router.test.mjs)。
 - [server.mjs](server.mjs)：上游工具代理和运行管理。
 - [design/plugin.html](design/plugin.html)：配置页面的可交互视觉参考。
 - [test/](test/)：Node 测试；运行 `npm test`。

@@ -8,7 +8,7 @@ import { installLazyTools } from './lazy-tools.mjs';
 export const name='dsh-comfyui-mcp';
 export const inject=['tools','webServer','agents'];
 export const Config=z.object({
- lazyTools:z.boolean().default(true).description('Load the four ComfyUI tools only when requested by each agent. Does not start ComfyUI.'),
+ lazyTools:z.boolean().default(true).description('Load the three ComfyUI tools only when requested by each agent. Does not start ComfyUI.'),
  url:z.string().default('http://127.0.0.1:8188').description('ComfyUI HTTP(S) address; default is loopback.'),
  autoStart:z.boolean().default(false).description('Allow local on-demand startup. Discovery and connection tests never start ComfyUI.'),
  comfyuiDir:z.string().default('').description('Absolute directory containing main.py. Required for local startup.'),

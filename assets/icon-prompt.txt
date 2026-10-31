@@ -1,5 +1,7 @@
-Krea 2 Turbo generated artwork, 2026-10-26.
-Prompt: A minimal vector-style icon for a creative workflow bridge: three softly rounded indigo nodes connected by a single flowing turquoise ribbon forming an abstract C, one small four-point white sparkle at the upper right. Bold simple geometric silhouette, crisp edges, centered front view, generous padding, refined modern software brand mark, limited indigo and mint palette, completely flat warm off-white background, no text
-Model: krea2_turbo_fp8_scaled.safetensors; seed 261026; 1024x1024; 8 steps; CFG 1; er_sde/simple.
-Source: v016_00001_.png; icon.svg embeds the same raster artwork.
+Krea 2 Turbo generated artwork for 0.1.8.
+Prompt: A premium software app icon, a single bold turquoise C-shaped loop made of three rounded connected workflow nodes, a small brilliant ivory four-point spark nested inside the opening at upper right. Thick confident geometry, extremely simple recognizable silhouette, soft enamel material with subtle dimensional bevel, front view, centered, symbol fills seventy percent of the canvas. Rounded square midnight indigo tile fills the canvas edge to edge, gentle blue illumination, refined modern creative software identity, crisp clean edges, no thin lines, no extra decorations, no letters, no text.
+Model: krea2_turbo_fp8_scaled.safetensors; CLIP qwen3vl_4b_fp8_scaled.safetensors; VAE qwen_image_vae.safetensors.
+Seed: 26103118; 1024x1024; steps 8; CFG 1; er_sde/simple.
+Source: dsh-comfyui/icon-018_00001_.png; prompt ID 1aad260c-e54a-4f27-bac0-2e02bc7f9f91.
+Photoshop: brightness +2, contrast +9; resize to 512x512; Unsharp Mask amount 65%, radius 0.5px, threshold 2; saved PNG and verified clean close. Photoshop Remove Background could not find a background; no result was saved from that attempt. Postprocess: removed only corner-connected near-white pixels (minimum RGB >180) with Pillow, leaving the disconnected ivory spark intact; Lanczos resize to 256x256 RGBA; all four corner alpha values verified 0. icon.svg embeds the same PNG.
 License: MIT, same as this plugin.

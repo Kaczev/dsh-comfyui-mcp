@@ -1,6 +1,6 @@
 {
   "name": "dsh-comfyui-mcp",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "ComfyUI connection and safe on-demand lifecycle for DSH; powered by artokun/comfyui-mcp.",
   "type": "module",
   "license": "MIT",
@@ -32,6 +32,7 @@
     "lazy-tools.mjs",
     "runtime.mjs",
     "configured-runtime.mjs",
+    "tool-router.mjs",
     "server.mjs",
     "client.js",
     "cordis.patch.yml",
@@ -57,7 +58,7 @@
     }
   },
   "scripts": {
-    "check": "node --check index.mjs && node --check runtime.mjs && node --check configured-runtime.mjs && node --check server.mjs && node --check client.js && node --check lazy-tools.mjs",
+    "check": "node --check index.mjs && node --check runtime.mjs && node --check configured-runtime.mjs && node --check server.mjs && node --check client.js && node --check lazy-tools.mjs && node --check tool-router.mjs",
     "test": "node --test test/*.test.mjs",
     "build": "npm run check",
     "pack:check": "npm pack --dry-run --json"

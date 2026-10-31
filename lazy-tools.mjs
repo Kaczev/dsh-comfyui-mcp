@@ -1,4 +1,4 @@
-const NAMES=['runtime','list_tools','describe_tool','call_tool'].map(n=>'mcp__comfyui__'+n);
+import { TOOL_NAMES as NAMES } from './tool-router.mjs';
 export function installLazyTools(ctx,config){
  const states=new Map();
  function attach(agent){

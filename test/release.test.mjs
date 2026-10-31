@@ -4,6 +4,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = new URL('../', import.meta.url);
+test('icon remains compact RGBA and SVG embeds the exact PNG',()=>{
+ const png=fs.readFileSync(new URL('assets/icon.png',root));
+ assert.equal(png.readUInt32BE(16),256);
+ assert.equal(png.readUInt32BE(20),256);
+ assert.equal(png[25],6,'Icon must retain RGBA transparency');
+ const svg=fs.readFileSync(new URL('assets/icon.svg',root),'utf8');
+ assert.ok(Buffer.byteLength(svg)<256*1024);
+ assert.ok(svg.includes(png.toString('base64')));
+});
+
 test('release manifest exports real resources and contains no personal configuration', () => {
   const manifest = JSON.parse(fs.readFileSync(new URL('package.json', root), 'utf8'));
   assert.equal(manifest.name, 'dsh-comfyui-mcp');
