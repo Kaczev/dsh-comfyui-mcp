@@ -1,29 +1,29 @@
 ---
 name: krea2-image-prompt
-description: 用本机 Krea 2 Turbo 出位图素材的提示词指南与流水线——UI 图标/背景/空状态/角色/纹理/无缝图案，含透明底抠色、角色一致性、故障速查
+description: Prompt guide and pipeline for bitmap assets with local Krea 2 Turbo—UI icons, backgrounds, empty states, characters, textures and seamless patterns; includes chroma-key transparency, character consistency and troubleshooting.
 ---
 
-# 本机 Krea 2 出图
+# Generate images with local Krea 2
 
-仅在已决定使用 Krea 2 制作位图时加载。选工具与验收见 [素材制作](../visual-asset-production/SKILL.md)。机器事实和耗时为历史实测，使用前核对当前模型、节点和接口，不自动安装缺少的模型。
+Load only after choosing Krea 2 for bitmap production. For tool selection and acceptance, see [Asset production](../visual-asset-production/SKILL.md). Machine facts and timings below are historical measurements. Check the current models, nodes and interfaces before use; do not automatically install missing models.
 
-## 机器事实（2026-10 在本机实测）
+## Machine facts (measured locally in 2026-10)
 
-- 模型 `krea2_turbo_fp8_scaled.safetensors` + 编码器 `qwen3vl_4b_fp8_scaled.safetensors`（`CLIPLoader type=krea2`）+ `qwen_image_vae.safetensors`。**本机没有任何 checkpoint。**
-- ComfyUI 以 `--disable-all-custom-nodes` 启动：KJNodes / RMBG / upscale / controlnet / ip-adapter 全部不可用，`generate_image` 的 image 动作会因缺 checkpoint 失败。必须自建节点图：`UNETLoader → CLIPLoader → VAELoader → CLIPTextEncode ×2 → EmptySD3LatentImage → KSampler → VAEDecode → SaveImage`，完整 JSON 见 `reference/workflow.json`。
-- 8GB VRAM 够用；2K 不报错但慢 4.7 倍。
-- 风格 LoRA：`krea2_darkbrush.safetensors`，strength 1.0，**不需要触发词**，效果是把画面推向水彩/油画质感并整体压暗，同时会改人物配色。`krea2_znsfw_V2` 是 NSFW 模型，与素材工作无关，不用。
+- Model `krea2_turbo_fp8_scaled.safetensors` + encoder `qwen3vl_4b_fp8_scaled.safetensors` (`CLIPLoader type=krea2`) + `qwen_image_vae.safetensors`. **This machine had no checkpoints.**
+- ComfyUI was launched with `--disable-all-custom-nodes`: KJNodes / RMBG / upscale / controlnet / ip-adapter were unavailable. The image action of `generate_image` would fail without a checkpoint. Build a node graph instead: `UNETLoader → CLIPLoader → VAELoader → CLIPTextEncode ×2 → EmptySD3LatentImage → KSampler → VAEDecode → SaveImage`. Full JSON: `reference/workflow.json`.
+- 8GB VRAM was sufficient; 2K worked but took 4.7 times as long.
+- Style LoRA: `krea2_darkbrush.safetensors`, strength 1.0, **no trigger word needed**. It shifts the image toward watercolor/oil painting, darkens the overall tone and changes character colors. `krea2_znsfw_V2` is an NSFW model, unrelated to asset work; do not use it.
 
-## 采样参数（别乱调）
+## Sampling parameters (do not change arbitrarily)
 
-| 项 | 值 | 依据 |
+| Setting | Value | Basis |
 | --- | --- | --- |
-| steps | 8 | 蒸馏模型；加到 12 步没有可见收益 |
-| cfg | 1.0 | 1.5+12 步实测耗时 2.8 倍、画面无提升；cfg=1 时引导公式退化为纯条件预测，**负向提示词在数学上不参与计算，别写** |
-| sampler / scheduler | `er_sde` / `simple` | 上游 verified 组合 |
-| seed | 写死具体数字 | 复现与一致性都靠它 |
+| steps | 8 | Distilled model; increasing to 12 steps gave no visible benefit |
+| cfg | 1.0 | 1.5+12 steps took 2.8 times as long without improving the image; at cfg=1 the guidance formula reduces to the conditional prediction alone, so **negative prompts do not participate mathematically; omit them** |
+| sampler / scheduler | `er_sde` / `simple` | Upstream verified combination |
+| seed | An explicit fixed number | Needed for reproducibility and consistency |
 
-| 尺寸 | 实测耗时 |
+| Size | Measured time |
 | --- | --- |
 | 512×512 | 12s |
 | 768×768 | 26s |
@@ -34,71 +34,71 @@ description: 用本机 Krea 2 Turbo 出位图素材的提示词指南与流水�
 | 1920×1080 | 60s |
 | 2048×2048 | 140s |
 
-先用 512² 或 1024² 试构图，定了再按目标尺寸重跑。同 prompt 同 seed 换尺寸，结果不保证一致，构图会漂。
+Try composition at 512² or 1024², then rerun at the target size. The same prompt and seed do not guarantee the same result at a different size; composition can drift.
 
-## 硬规则
+## Hard rules
 
-1. **要出现在图里的文字一律放进英文双引号**，越短越好（1–4 词）。实测 1024²、1280×800、1920×1080 下拉丁字母都清晰正确：`text reads "Preferences"`。
-2. **不打算写字就写 `no text`**。任何"有文字形状但没指定内容"的区域都会被填成伪文字：实测侧栏被编成 `Revanto / Reparls`，图表轴变成 `lor / 1ar / lmo`，还会在背景留下半透明字母纹理。
-3. **中文别指望**。四字常见词偶尔对（`欢迎回来` 对了），稍长就变近字：`登录`→`设各`，`鲸鲸的后花园`→`鲽鲽的后莪园`。中文 UI 一律走：生成无字留白版 → 真文字在 HTML/CSS 里叠。
-4. 只写**看得见的东西**，按这个顺序：主体 → 外观细节（颜色/材质/轮廓/线宽）→ 构图与视角 → 风格媒介 → 光与色 → 背景与留白 → `no text`。Krea 2 用 Qwen3-VL 编码器，按自然语言理解，结尾的"背景 + no text"最容易生效。
-5. **一图一件事**。要四个图标就说"2×2 网格、同风格、等距留白"，别指望一次给出十二个一致组件。
-6. **别用 grounded DSL**：`t[160,180,700,280]"..."` 那套是 bbox 微调版的训练格式，在 stock Turbo 上会把方括号原样画进图里（实测确实泄漏成可见文字）。
-7. `app icon` 会自动加圆角方底（squircle）。要出血或无缝贴图改用 `flat vector illustration` / `sticker on a solid ... background`。
-8. 提示词控制在 300 词以内。实测 68 词、14 个元素的长 prompt 全部落地（含最后一个元素），但编码窗口有限（社区记录约 512 token），超了会从尾部截断——而尾部通常正是最关键的 `no text`。
+1. **Put all intended visible text in English double quotes** and keep it short (1–4 words). Latin text was clear and correct at 1024², 1280×800 and 1920×1080: `text reads "Preferences"`.
+2. **Write `no text` when no text is intended.** Any area described as text-shaped without specified wording invites pseudo-text: measured examples included sidebar labels `Revanto / Reparls`, chart axes `lor / 1ar / lmo` and translucent letter textures in the background.
+3. **Do not rely on Chinese rendering.** A common four-character phrase occasionally worked (`欢迎回来`), but longer wording became look-alike characters: `登录`→`设各`, `鲸鲸的后花园`→`鲽鲽的后莪园`. For Chinese UI, generate a text-free image with reserved space, then overlay real text in HTML/CSS.
+4. Describe only **visible things**, in this order: subject → appearance details (color/material/outline/line width) → composition and viewpoint → style and medium → light and color → background and negative space → `no text`. Krea 2 uses a Qwen3-VL encoder and understands natural language; the final background and `no text` clauses tend to take effect most reliably.
+5. **One image, one job.** For four icons, request a 2×2 grid, matching style and equal padding. Do not expect twelve consistent components in one pass.
+6. **Do not use grounded DSL**: `t[160,180,700,280]"..."` is a training format for a bbox-finetuned variant. Stock Turbo renders the brackets literally; this was observed as visible text leakage.
+7. `app icon` can add a rounded-square background (squircle). For full-bleed art or seamless textures, use `flat vector illustration` / `sticker on a solid ... background` instead.
+8. Keep prompts below 300 words. A measured 68-word, 14-element prompt included every element, even the last one. The encoding window is limited (community reports suggest about 512 tokens); overflow is truncated from the end, often losing the crucial `no text` clause.
 
-## 六段骨架
+## Six-part template
 
 ```
-<主体一句话>, <外观细节>, <构图与视角>, <风格媒介>, <光与色>, <背景与留白>, no text
+<one-sentence subject>, <appearance details>, <composition and viewpoint>, <style and medium>, <light and color>, <background and negative space>, no text
 ```
 
-例：
+Example:
 
 ```
 Flat vector app icon of a friendly blue whale, thick rounded dark navy outlines, two flat colors plus white belly, centered with generous padding, solid off-white background, no text
 ```
 
-## 三条调用路径
+## Three invocation paths
 
-起手检查：ComfyUI 没在配置地址上响应时，先核对插件配置，再按已授权的启动方式执行 `runtime start`（MCP），或使用用户自己的 ComfyUI 启动器。脚本默认连 `http://127.0.0.1:8188`，可用 `COMFY_URL` 覆盖；脚本都在本 skill 目录的 `scripts/` 下，用绝对路径或先 cd 进去。
+First check readiness. If ComfyUI does not respond at the configured address, check plugin configuration, then use the authorized startup method: `runtime start` (MCP) or the user's own ComfyUI launcher. Scripts default to `http://127.0.0.1:8188`; override with `COMFY_URL`. All scripts are under this skill's `scripts/` directory; use absolute paths or change into the skill directory first.
 
-1. **MCP（正式路径）**：`enqueue_workflow action:"enqueue"` 传 API 格式 graph（`reference/workflow.json`），再 `get_history action:"list"` 取图。已验证能拿到 prompt_id 并出图。
-2. **脚本快跑（本机迭代最快）**：
+1. **MCP (primary path)**: pass an API-format graph (`reference/workflow.json`) to `enqueue_workflow action:"enqueue"`, then retrieve images with `get_history action:"list"`. This path was verified to return a prompt_id and an image.
+2. **Quick scripts (fastest for local iteration)**:
    ```
    python scripts/krea.py --prompt "..." --w 1024 --h 1024 --seed 12345
    ```
-   支持 `--lora krea2_darkbrush.safetensors:1.0`、`--init 图.png --denoise 0.45`（img2img）、`--out DIR`。批量跑：`python scripts/batch.py jobs.json`。
-3. **透明底**：prompt 写 `on a completely flat solid chroma green background, even lighting, no shadow`，生成后
+   Supports `--lora krea2_darkbrush.safetensors:1.0`, `--init image.png --denoise 0.45` (img2img) and `--out DIR`. For batches: `python scripts/batch.py jobs.json`.
+3. **Transparent background**: prompt with `on a completely flat solid chroma green background, even lighting, no shadow`, then run:
    ```
    python scripts/key.py in.png out.png
    ```
-   得到 RGBA + 浅/深/粉三联预览。主体本身偏绿就换 magenta 底。
+   Produces RGBA plus a light/dark/pink triptych preview. Use magenta if the subject itself is greenish.
 
-## 一致性
+## Consistency
 
-- **角色**：把一段"角色块"逐字复用（发型 / 眼睛 / 服装 / 配色 / 画风），换 seed、换姿势角色仍是同一个（实测同 seed 换动作、不同 seed 同文案都稳）。姿势用动词替换，别重写角色块。
-- **角色 + 持物**：Q 版全身像抱玩偶会把手臂和玩偶糊成一团（两次复现）。道具单独生成再拼。
-- **img2img**：denoise 0.45 只做细节微调，且会带进淡纹理伪影；要换姿势直接 txt2img 更干净。
-- **图标家族**：一次出 2×2 网格再裁切，比四张单图风格更统一。
+- **Characters**: reuse the character block verbatim (hair / eyes / clothing / palette / art style). The character stayed consistent when changing seed or pose: both same-seed/different-action and different-seed/same-prompt tests were stable. Replace pose verbs rather than rewriting the character block.
+- **Character holding an object**: full-body chibi figures hugging a plush merged arms and plush into a blob (reproduced twice). Generate props separately and composite them.
+- **img2img**: denoise 0.45 only adjusted details and introduced faint texture artifacts. For a different pose, txt2img was cleaner.
+- **Icon families**: generating a 2×2 grid and cropping produced more consistent styling than four separate images.
 
-## 素材配方
+## Asset recipes
 
-图标 / 图标家族 / hero 背景 / 空状态 / 无缝图案 / 组件表 / 整屏 mockup / 角色立绘 / 水彩场景 / 材质纹理 —— 每条都有可直接抄的 prompt 和实测结论：`reference/recipes.md`。
+Icons / icon families / hero backgrounds / empty states / seamless patterns / component sheets / full-screen mockups / character art / watercolor scenes / material textures: copyable prompts and measured outcomes are in `reference/recipes.md`.
 
-跑过什么、耗时、哪些失败：`reference/experiments.md`。
+For experiments, timings and failures, see `reference/experiments.md`.
 
-## 故障速查
+## Troubleshooting
 
-| 现象 | 原因 | 对策 |
+| Symptom | Cause | Remedy |
 | --- | --- | --- |
-| 文字乱码、伪字母 | 没加引号，或用了中文 | 英文引号写死 ≤4 词；中文后期叠 |
-| 背景浮出半透明字母纹理 | 提示词描述了"有很多文字的界面" | 删掉文字描述，加 `no text` |
-| 手 / 玩偶糊成一团 | Q 版全身像 + 持物 | 去掉持物，或改成"手放在身侧" |
-| 主体被圆角方底包住 | 用了 `app icon` | 改 `sticker` / `illustration on solid background` |
-| 元素都出现但都糊 | 词太多，主体不明确 | 先一句话定主体，512² 试构图 |
-| 抠图边缘发绿 | 主体本身偏绿 | 换 magenta 底再 key |
+| Garbled text or pseudo-letters | Unquoted wording or Chinese | Specify ≤4 words in English double quotes; overlay Chinese later |
+| Translucent letter textures in the background | Prompt describes an interface with lots of text | Remove text descriptions and add `no text` |
+| Hands and plush merge into a blob | Full-body chibi figure holding an object | Remove the prop, or request hands resting at the sides |
+| Rounded-square tile surrounds the subject | `app icon` | Use `sticker` / `illustration on solid background` |
+| All elements appear but are blurry | Too many words and no clear subject | Define the subject in one sentence first; try composition at 512² |
+| Green edges after keying | The subject itself is greenish | Use a magenta background and key again |
 
-## 还能这么用
+## Other uses
 
-场景插画、讲概念的配图、演示封面、贴纸与表情包、头像、桌宠立绘、角色三视图与表情表、漫画分镜、等距小地图、徽章成就、材质球（玻璃/金属/纸）、渐变与噪点底图、社交分享卡背景、404 与空状态插画、骨架屏占位图、贺卡海报。凡是"位图素材"都能套这套流程；真正的文案与排版回到 HTML/CSS。
+Scene illustrations, conceptual images, presentation covers, stickers and reaction images, avatars, desktop-pet character art, character turnarounds and expression sheets, comic storyboards, isometric minimaps, achievement badges, material spheres (glass/metal/paper), gradient and noise backgrounds, social-card backgrounds, 404 and empty-state illustrations, skeleton-screen placeholders, greeting cards and posters. This workflow applies to bitmap assets; keep real copy and layout in HTML/CSS.

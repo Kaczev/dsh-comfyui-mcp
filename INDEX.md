@@ -19,3 +19,5 @@ ComfyUI 的 DSH 插件封装；业务工具由上游 MCP 提供。
 
 - [packaged-skills.mjs](packaged-skills.mjs)：随包技能解析、注册与卸载清理；[回归测试](test/packaged-skills.test.mjs)。
 - [docs/release-v0.1.9.md](docs/release-v0.1.9.md)：随包技能归属、迁移与本次验证范围。
+
+- [0.1.10 release notes](docs/release-v0.1.10.md): English skill documentation and verification scope.

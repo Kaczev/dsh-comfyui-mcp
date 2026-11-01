@@ -8,7 +8,7 @@ ComfyUI 工具来自 [artokun/comfyui-mcp](https://github.com/artokun/comfyui-mc
 
 ## 安装与配置
 
-需要 Node.js 22 及兼容的 DSH（当前声明为 `>=0.2.1-rc.3 <0.3.0`）。在 DSH 插件管理器中安装 `dsh-comfyui-mcp`（指定版本可填 `dsh-comfyui-mcp@0.1.9`），然后启用组件。也支持安装本地目录或 `.tgz`。不要另外添加同名 MCP 桥。
+需要 Node.js 22 及兼容的 DSH（当前声明为 `>=0.2.1-rc.3 <0.3.0`）。在 DSH 插件管理器中安装 `dsh-comfyui-mcp`（指定版本可填 `dsh-comfyui-mcp@0.1.10`），然后启用组件。也支持安装本地目录或 `.tgz`。不要另外添加同名 MCP 桥。
 
 打开「插件 → ComfyUI MCP」，点击「测试连接」探测现有服务。在同页下方的「运行配置」表单设置：
 

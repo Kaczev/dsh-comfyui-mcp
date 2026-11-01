@@ -1,32 +1,32 @@
 ---
 name: visual-asset-production
-description: 制作 UI 图标、面板、角色、背景和纹理时选择生成、程序绘图与排版，并在目标尺寸及真实场景验收。
+description: Use when producing UI icons, panels, characters, backgrounds or textures to choose generation, programmatic drawing and typography, then verify assets at target size in their actual context.
 ---
 
-# 素材工具选择与场景验收
+# Choose asset tools and verify in context
 
-## 按约束选工具
+## Choose tools from the constraints
 
-读既有视觉参考及素材，确认尺寸、透明、留白、缩放、锚点、颜色和文字需求。
+Read existing visual references and assets. Confirm dimensions, transparency, padding, scaling, anchors, colors and text requirements.
 
-- 精确边框、九宫格、排版、文字和数值图形优先 SVG、Canvas、程序绘图或排版。
-- 插画、纹理和允许变化的造型可用生成模型，先核对模型、节点和授权。
-- 已有合适素材优先复用或小幅加工，不擅自重做全部素材。
+- Prefer SVG, Canvas, programmatic drawing or typesetting for precise borders, nine-slice assets, layout, text and quantitative graphics.
+- Generative models suit illustrations, textures and shapes that allow variation. Check models, nodes and authorization first.
+- Reuse or lightly adapt suitable existing assets rather than redoing all assets without authorization.
 
-分清可随机与必须精确的内容。伪文字不能做正式文案；需要准确文字时生成无字底图，再以真实字体排版。
+Separate what may vary from what must be exact. Pseudo-text is not production copy. When text must be accurate, generate a text-free base and typeset real fonts afterwards.
 
-## 小样到定稿
+## From sample to final asset
 
-先用小样确认构图，记录模型、工作流、输入和 seed；同 seed 不保证跨模型、尺寸和版本一致。历史实测不写成永久保证。
+Confirm composition with a small sample and record the model, workflow, inputs and seed. The same seed does not guarantee consistency across models, dimensions or versions. Do not turn historical measurements into permanent guarantees.
 
-从既有素材取色，固定轮廓、材质、光向和视角。角色复用描述与参考，每张仍检查面部、服装、比例。复杂持物和组件可分层制作，批量生成不证明一致性。
+Sample colors from existing assets and fix outlines, materials, light direction and viewpoint. Reuse character descriptions and references, but still check each image's face, clothing and proportions. Complex props and components can be made in layers. Batch generation does not prove consistency.
 
-使用 Krea 2 时再读 [Krea 技能](../krea2-image-prompt/SKILL.md)。其中机器事实使用前重新核验，不照抄路径或假定模型存在。先读当前 MCP schema；不擅自下载模型、安装节点或消费付费资源。
+Read the [Krea skill](../krea2-image-prompt/SKILL.md) only when using Krea 2. Recheck its machine-specific facts before use; do not copy paths blindly or assume models exist. Read the current MCP schema first. Do not download models, install nodes or consume paid resources without authorization.
 
-## 后处理
+## Post-processing
 
-保留原图和编辑源，输出新路径。去底前检查主体与背景是否同色，阈值从保守起点调整。白底处理按需加载 white-background-to-alpha；预览白色不证明透明。
+Preserve originals and editable sources, and write to new paths. Before background removal, check whether subject and background share colors, then adjust thresholds from a conservative starting point. Load white-background-to-alpha when needed for white backgrounds. A white preview does not prove transparency.
 
-检查解码格式、尺寸、alpha 和边缘，在浅、深、彩色底及目标尺寸查看。描边留边距，缩放后检查细线、白边、色溢出。
+Check decoded format, dimensions, alpha and edges on light, dark and colored backgrounds at target size. Leave margin for strokes. After scaling, inspect fine lines, white fringes and color spill.
 
-放回实际界面或场景，检查对比度、锚点、落脚点、遮挡、接缝及真实文案。HTML 视觉参考不代替应用验收。报告源文件、产物、已验证尺寸和残留差异。
+Place assets back into the actual interface or scene. Check contrast, anchors, landing points, occlusion, seams and real copy. An HTML visual reference does not replace application acceptance. Report source files, outputs, verified sizes and remaining differences.

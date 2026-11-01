@@ -1,128 +1,128 @@
-# 素材配方
+# Asset recipes
 
-每条配方都是在本机实测过的。prompt 可整段复制；"实测"记的是这一次的真实结果，不是推测。
+Each recipe was tested on the local machine. Prompts can be copied in full. Measured outcomes describe that run, not predictions.
 
-通用后缀：`no text`（不需要文字时）或 `text reads "..."`（需要文字时）。分辨率按用途取，先 1024² 试构图。
+Common suffix: `no text` when no wording is needed, or `text reads "..."` when it is. Choose resolution for the intended use; start at 1024² to test composition.
 
 ---
 
-## 1. 矢量图标
+## 1. Vector icon
 
 ```
 Flat vector app icon of a friendly blue whale, thick rounded dark navy outlines, two flat colors plus white belly, simple geometric shapes, centered with generous padding, solid off-white background, no text
 ```
 
-- 1024²，30s。干净的两色矢量鲸鱼，留白充足。
-- 512²，12s，同样质量——图标类都该先跑 512² 挑图，挑中了再放大重跑。
-- **`app icon` 会让模型加圆角方底（squircle）**；2048² 时尤其明显（整张图变成应用图标瓷砖）。要一张干净的图形就用：
+- 1024², 30s. A clean two-color vector whale with generous padding.
+- 512², 12s, with the same quality. For icons, select a candidate at 512² first, then rerun larger.
+- **`app icon` can cause a rounded-square background (squircle)**, especially at 2048², where the entire image became an app-icon tile. For a standalone graphic, use:
   ```
   Flat vector sticker of a friendly blue whale, thick dark navy outline, blue body with white belly, on a solid off-white background, even lighting, no shadow, no text
   ```
 
-## 2. 图标家族（一次出四个）
+## 2. Icon family (four at once)
 
 ```
 A set of four flat vector app icons arranged in a 2x2 grid on an off-white background: a whale, a crescent moon, a star and a soap bubble. Identical style across all four, thick rounded dark navy outlines, two flat colors each, generous equal padding, aligned to a grid, no text
 ```
 
-- 1024²，30s。四个图标风格确实统一（同样的线宽与双色逻辑），但**间距与大小不完全均等**，裁切时按视觉重心补 padding。
-- 裁切用 Pillow 均分四宫格再各自裁 bbox 最省事；不要指望模型给严格的等分。
+- 1024², 30s. All four icons shared line width and two-color treatment, but **spacing and sizes were not exactly equal**. Add padding around their visual centers when cropping.
+- The simplest crop is to split into four cells with Pillow, then crop each bounding box. Do not expect exact equal divisions from the model.
 
-## 3. Hero / 页面背景（带留白给文字）
+## 3. Hero / page background (space for text)
 
 ```
 A soft dreamy illustration background for an app onboarding screen: pale peach and lavender watercolor sky, gentle clouds, a calm horizon low in the frame, a small whale silhouette floating near the upper right, large empty smooth negative space across the left half for text, very soft edges and low contrast, no text
 ```
 
-- 1536×1024，45s。左侧留白真的留出来了，主体落在右上，文字可读性没问题。
-- 关键句式是 `large empty smooth negative space across the <位置> for text` + `low contrast`。只说"背景"会得到平均分布的纹理，叠字就糊。
-- 纯抽象底（渐变网格、噪点）也可靠：
+- 1536×1024, 45s. The left side remained empty, the subject landed in the upper right, and overlaid text was readable.
+- The key wording is `large empty smooth negative space across the <position> for text` + `low contrast`. Asking only for a background produces evenly distributed texture that interferes with text.
+- Abstract backgrounds (gradient meshes, noise) also worked:
   ```
   Abstract soft gradient mesh background, pale mint green fading into lavender and warm cream, blurred organic blobs, fine film grain, extremely low contrast, no subject, no text, calm and airy, suitable as a website hero background
   ```
-  → 1536×768，33s。柔和可用；紫块偶尔偏饱和，需在 CSS 里叠一层白色蒙版压住。
+  → 1536×768, 33s. Soft and usable; purple areas were sometimes too saturated and needed a white overlay in CSS.
 
-## 4. 空状态 / 错误页插画
+## 4. Empty-state / error-page illustration
 
 ```
 A charming empty-state illustration for a message inbox: a small round blue whale character lying upside down on a tiny cloud, eyes closed, bored but cute, flat vector style with soft pastel palette and thick outlines, isolated on a plain white background, lots of white space above, no text
 ```
 
-- 1024²，32s。主体落在下方中央、上方大片留白，正好放标题和按钮。
-- 抠透明底见 `scripts/key.py`：换成 `on a solid chroma green background` 再 key。
+- 1024², 32s. The subject sat at bottom center with ample space above for a heading and button.
+- For transparency, see `scripts/key.py`: change the background to `on a solid chroma green background`, then key it.
 
-## 5. 无缝平铺图案
+## 5. Seamless repeating pattern
 
 ```
 A seamless repeating pattern of tiny cute blue whales and small soap bubbles scattered evenly on a pale mint background, flat vector illustration, thick outlines, evenly spaced with no empty gaps, tileable edges, no text, no border
 ```
 
-- 1024²，30s。得到规整的重复网格，**但"seamless"只是意图，不是保证**。用前把图偏移半格拼 2×2 看一眼接缝。真要做到无缝，裁一块干净的四宫格单元再重复。
+- 1024², 30s. Produced a regular repeating grid, but **“seamless” is an intention, not a guarantee**. Offset by half a tile and inspect seams in a 2×2 arrangement before use. For an actually seamless result, crop a clean four-cell repeat unit and tile that.
 
-## 6. UI 组件表
+## 6. UI component sheet
 
 ```
 A UI component sheet arranged as a neat grid on a plain off-white background: a dark navy pill button, an outlined secondary button, a toggle switch in the on position, a round avatar placeholder, a text input field with a light grey border, a small badge with a count, a checkbox checked, a progress bar at sixty percent. Consistent flat vector style, thin rounded shapes, soft grey shadows, each component evenly spaced in its own cell, aligned to a grid, no text labels
 ```
 
-- 1024²，31s。八件套都在，风格统一，但**尺寸明显偏大**、不像真实组件比例；适合当"风格参考图"，不适合直接切图用。
-- `a small badge with a count` 这种"有个数字但没说数字"的地方会被填成伪数字（实测出现一个 `7` 形状的怪字）。要数字就引号写死。
+- 1024², 31s. All eight components were present with consistent styling, but **their proportions were noticeably oversized**, unlike real components. Useful as a style reference, not ready-to-crop production UI.
+- An unspecified number such as `a small badge with a count` invites pseudo-digits (a strange `7` shape appeared in the test). Quote the exact number if needed.
 
-## 7. 整屏 UI mockup（工作主力）
+## 7. Full-screen UI mockup (main workhorse)
 
 ```
 A settings panel UI mockup, light theme, rounded window with a soft drop shadow at the centre of a pale lavender background. A title at the top reads "Preferences". Below it four rows, each with a label and a control on the right: "Notifications" with a toggle, "Theme" with a segmented control showing "Light" and "Dark", "Language" with a dropdown reading "English", "Storage" with a progress bar and the text "4.2 GB of 8 GB". Flat vector interface design, crisp sans-serif typography, thin dividers, generous spacing, no photo
 ```
 
-- 1280×800，30s。**所有引号里的字符串全部正确**，开关/分段控件/进度条都对，可以直接当设计稿给人看。
-- 1920×1080 同样可靠（60s），文字在满分辨率下依然干净。
-- 反面教材（同一轮实测）：只写"四行菜单、三张卡片分别叫 Revenue/Users/Retention"而不全部加引号，会得到 `Anlytich Dashyiens`、`Revanto`、`Reparls`、`lor / 1ar / lmo` 这类伪文字，背景还会浮出半透明字母纹理。**凡是字，全部加引号；不加就整块别要。**
-- 中文：`欢迎回来` 侥幸正确，`登录` 变 `设各`，整句标题变近字。中文文案一律后期叠。
+- 1280×800, 30s. **Every quoted string was correct**, as were the toggle, segmented control and progress bar. Usable as a design mockup to show someone.
+- Also reliable at 1920×1080 (60s), with clean text at full resolution.
+- Counterexample from the same test round: describing four menu rows and three cards named Revenue/Users/Retention without quoting all wording produced `Anlytich Dashyiens`, `Revanto`, `Reparls`, `lor / 1ar / lmo` and translucent letter textures in the background. **Quote all text; otherwise omit that text area entirely.**
+- Chinese: `欢迎回来` happened to work, but `登录` became `设各`, and a full heading became look-alike characters. Overlay Chinese copy afterward.
 
-## 8. 角色立绘（UI 头像 / 空状态 / 桌宠）
+## 8. Character art (UI avatars / empty states / desktop pets)
 
-角色块（逐字复用，别改）：
+Character block (reuse verbatim):
 
 ```
 Full body chibi anime girl mascot wearing an oversized blue whale hoodie with a whale-tail hood, fluffy white hair, big round blue eyes, soft pastel palette of mint blue and cream, soft watercolor and cel-shaded illustration, thick clean linework, plain white background, centered with margin around the character, no text
 ```
 
-- 1024×1536，45s。要换姿势就只改中间那一句：
+- 1024×1536, 45s. To change pose, change only the clause in the middle:
   ```
   ... big round blue eyes, waving one hand cheerfully, slight three-quarter turn, soft pastel palette of mint blue and cream ...
   ```
-  同 seed 换姿势 → 同一个角色换动作；换 seed 同文案 → 还是同一个角色（发型、兜帽、配色都对得上）。**身份来自文字，不是来自 seed。**
-- 失败模式：`hugging a small whale plush` 会让手臂和玩偶糊成一团（两次复现）。要拿道具就单独生成道具再拼。
-- 非 Q 版、正比例的少女立绘同样成立：
+  Same seed with a new pose → same character doing another action. Different seed with the same prompt → still the same character (matching hair, hood and palette). **Identity came from the wording, not the seed.**
+- Failure: `hugging a small whale plush` merged arms and plush into a blob (reproduced twice). Generate props separately and composite them.
+- Non-chibi character art with normal proportions also worked:
   ```
   Anime illustration of a girl in a whale hoodie sitting on a rock at the seaside, soft pastel palette, gentle light
   ```
-  1024²，32s。加 `--lora krea2_darkbrush.safetensors:1.0` 会变成水彩油画质感、调子压暗、配色也变（40s）——想换风格质感时用它，别指望它保持原配色。
+  1024², 32s. Adding `--lora krea2_darkbrush.safetensors:1.0` produced watercolor/oil texture, a darker tone and different colors (40s). Use it to change texture and style, not to preserve the original palette.
 
-## 9. 宽幅 banner（含贴纸风角色）
+## 9. Wide banner (with a sticker-style character)
 
 ```
 A wide app banner with a soft pastel watercolor background of pale peach and mint clouds. On the right side a cute chibi whale character floats happily among bubbles. On the left third large bold dark navy Chinese text reads '鲸鲸的后花园', below it smaller text reads '每天收集一只小鲸鱼'. Flat vector illustration with thick outlines, plenty of clean space, no other text
 ```
 
-- 1536×640，30s。布局、角色、留白全对；**中文标题被画成近字**（`鲽鲽的后莪园`）。把中文换拉丁文案，或让 banner 留空后期叠字。
+- 1536×640, 30s. Layout, character and negative space were correct, but **the Chinese heading became look-alike characters** (`鲽鲽的后莪园`). Replace Chinese with Latin wording, or leave the banner blank and overlay text afterward.
 
-## 10. 透明底素材
+## 10. Transparent assets
 
 ```
 Flat vector mascot sticker of a friendly blue whale, thick dark navy outline, blue body with white belly, simple geometric shapes, on a completely flat solid chroma green background (hex 00FF00), even lighting, no shadow, no text
 ```
 
-- 1024²，30s。模型给的绿不是纯 `#00FF00`（实测约 `#29BE48`），所以 key 时按四边中位色自适应，不要写死色值。
-- `python scripts/key.py in.png out.png` → RGBA，边缘去绿溢，输出浅/深/粉三联预览。默认阈值 `lo=36 hi=96`，边缘发绿就调高 `lo`。
-- 主体本身偏绿/偏青（比如薄荷色吉祥物）就换 magenta 底：同样实测可用，边缘略更干净。
+- 1024², 30s. The generated green was not pure `#00FF00` (measured around `#29BE48`), so adapt keying to the median boundary color rather than hard-coding it.
+- `python scripts/key.py in.png out.png` → RGBA with green spill suppression and a light/dark/pink triptych preview. Default thresholds: `lo=36 hi=96`; increase `lo` if edges remain green.
+- If the subject is greenish/cyan (such as a mint mascot), use a magenta background. This also worked in testing, with slightly cleaner edges.
 
-## 11. 场景插画 / 讲概念的配图
+## 11. Scene illustrations / conceptual images
 
-一条长 prompt 可以同时锁定：视角、构图位置、材质、调子、若干具体物件。实测 68 词 14 个元素全部落地（含最后一句"右下角靠墙放一把红色小伞"）：
+A long prompt can specify viewpoint, placement, materials, tone and several objects at once. A measured 68-word, 14-element prompt included everything, even the final tiny red umbrella against the wall at bottom right:
 
 ```
 A cozy reading nook in a small attic room, warm afternoon light through a round window, a worn armchair with a knitted blanket, a stack of books on a wooden stool, dust motes in the sunbeam, soft painterly illustration, muted warm palette, quiet and inviting atmosphere, gentle shadows, visible brush texture, careful composition with the window at the upper left and the chair facing it, a small whale plush tucked into the corner of the armchair, a striped mug of tea on the floor beside the stool, a folded newspaper, a hanging plant in the upper right corner, an old rug with faded geometric pattern, three framed prints on the slanted wall, a wooden ladder leaning at the far right, in the extreme lower right corner a tiny red umbrella leaning against the wall
 ```
 
-- 1024²，32s。长 prompt 仍然好用，但控制在 300 词以内。
+- 1024², 32s. Long prompts still worked, but keep them below 300 words.
