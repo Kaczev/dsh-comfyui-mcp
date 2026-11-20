@@ -49,7 +49,7 @@ A charming empty-state illustration for a message inbox: a small round blue whal
 ```
 
 - 1024², 32s. The subject sat at bottom center with ample space above for a heading and button.
-- For transparency, see `scripts/key.py`: change the background to `on a solid chroma green background`, then key it.
+- For a transparent export, replace the white background with a flat key color that is distinct from the whale and cloud. Follow the [transparent-background workflow](../SKILL.md#three-invocation-paths).
 
 ## 5. Seamless repeating pattern
 
@@ -113,9 +113,8 @@ A wide app banner with a soft pastel watercolor background of pale peach and min
 Flat vector mascot sticker of a friendly blue whale, thick dark navy outline, blue body with white belly, simple geometric shapes, on a completely flat solid chroma green background (hex 00FF00), even lighting, no shadow, no text
 ```
 
-- 1024², 30s. The generated green was not pure `#00FF00` (measured around `#29BE48`), so adapt keying to the median boundary color rather than hard-coding it.
-- `python scripts/key.py in.png out.png` → RGBA with green spill suppression and a light/dark/pink triptych preview. Default thresholds: `lo=36 hi=96`; increase `lo` if edges remain green.
-- If the subject is greenish/cyan (such as a mint mascot), use a magenta background. This also worked in testing, with slightly cleaner edges.
+- 1024², 30s. The generated green measured around `#29BE48`, not `#00FF00`. `scripts/key.py` samples the actual border color, so use the generated image as-is if the fill is uniform.
+- The same blue whale also keyed cleanly against magenta. For other subjects, choose the background against the full palette and check the result using the [transparent-background workflow](../SKILL.md#three-invocation-paths).
 
 ## 11. Scene illustrations / conceptual images
 

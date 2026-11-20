@@ -59,6 +59,8 @@ Example:
 Flat vector app icon of a friendly blue whale, thick rounded dark navy outlines, two flat colors plus white belly, centered with generous padding, solid off-white background, no text
 ```
 
+This example keeps its background. If the icon needs transparency, describe it as a `sticker` rather than an `app icon` and use the keying workflow below.
+
 ## Three invocation paths
 
 First check readiness. If ComfyUI does not respond at the configured address, check plugin configuration, then use the authorized startup method: `runtime start` (MCP) or the user's own ComfyUI launcher. Scripts default to `http://127.0.0.1:8188`; override with `COMFY_URL`. All scripts are under this skill's `scripts/` directory; use absolute paths or change into the skill directory first.
@@ -69,11 +71,13 @@ First check readiness. If ComfyUI does not respond at the configured address, ch
    python scripts/krea.py --prompt "..." --w 1024 --h 1024 --seed 12345
    ```
    Supports `--lora krea2_darkbrush.safetensors:1.0`, `--init image.png --denoise 0.45` (img2img) and `--out DIR`. For batches: `python scripts/batch.py jobs.json`.
-3. **Transparent background**: prompt with `on a completely flat solid chroma green background, even lighting, no shadow`, then run:
+3. **Transparent background**: choose a saturated key color that does not appear anywhere in the icon and is easy to distinguish from its outline and edge highlights. Use bright green when the icon has no green or nearby hues; for mint or teal artwork, try bright magenta if the icon has no pink or purple. Pick against the whole palette rather than inverting the main color.
+
+   Append `centered with clear padding on all sides, on a flat solid bright magenta background covering the entire canvas, even lighting, no gradient, texture, cast shadow or glow, no text`, substituting the chosen color. Keep the icon clear of the frame so the script can sample the background from the border. Once the fill is uniform, run:
    ```
    python scripts/key.py in.png out.png
    ```
-   Produces RGBA plus a light/dark/pink triptych preview. Use magenta if the subject itself is greenish.
+   The script saves an RGBA PNG and a light/dark/pink preview. Check the light and dark panels at the intended icon size for colored fringes, gaps in the silhouette, and missing thin lines.
 
 ## Consistency
 
@@ -97,7 +101,7 @@ For experiments, timings and failures, see `reference/experiments.md`.
 | Hands and plush merge into a blob | Full-body chibi figure holding an object | Remove the prop, or request hands resting at the sides |
 | Rounded-square tile surrounds the subject | `app icon` | Use `sticker` / `illustration on solid background` |
 | All elements appear but are blurry | Too many words and no clear subject | Define the subject in one sentence first; try composition at 512² |
-| Green edges after keying | The subject itself is greenish | Use a magenta background and key again |
+| Fringes or missing details after keying | The key color is too close to the artwork, or the background is uneven | Regenerate with a more distinct key color or a flatter fill, then key again |
 
 ## Other uses
 
