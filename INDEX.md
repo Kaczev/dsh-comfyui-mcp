@@ -22,3 +22,4 @@ ComfyUI 的 DSH 插件封装；业务工具由上游 MCP 提供。
 
 - [0.1.10 release notes](docs/release-v0.1.10.md): English skill documentation and verification scope.
 - [0.2.0 发布说明](docs/release-v0.2.0.md)：技能入口接管工具，首次调用再连接上游。
+- [0.2.1 发布说明](docs/release-v0.2.1.md)：ComfyUI 技能补充不启动检查、选图和一次提交后的核对。

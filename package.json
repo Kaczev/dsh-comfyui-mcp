@@ -1,6 +1,6 @@
 {
   "name": "dsh-comfyui-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "ComfyUI connection and safe on-demand lifecycle for DSH; powered by artokun/comfyui-mcp.",
   "type": "module",
   "license": "MIT",
