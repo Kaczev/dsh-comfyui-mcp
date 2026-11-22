@@ -19,6 +19,24 @@ test('configuration switches close the old runtime without starting a process', 
   await assert.rejects(runtime.run('status'), /closing/);
 });
 
+test('old lazyTools settings preserve the runtime and the upstream config', async () => {
+  let value = {}, created = 0, closed = 0;
+  const runtime = createConfiguredRuntime(() => value, config => {
+    created++;
+    return { config, close: async () => { closed++; } };
+  });
+  const initial = await runtime.run('config');
+  for (const lazyTools of [true, false]) {
+    value = { lazyTools };
+    assert.equal(await runtime.run('config'), initial);
+    assert.equal(created, 1);
+    assert.equal(closed, 0);
+  }
+  assert.equal(Object.hasOwn(initial, 'lazyTools'), false);
+  await runtime.close();
+  assert.equal(closed, 1);
+});
+
 test('invalid saved configuration does not dispose the active runtime', async () => {
   let value = {};
   let closed = false;

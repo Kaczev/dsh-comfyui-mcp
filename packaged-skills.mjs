@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 // Only this package's plain name/description frontmatter is supported.
 export function readPackagedSkills(directory) {
   return readdirSync(directory, { withFileTypes: true })
-    .filter(entry => entry.isDirectory()).map(entry => entry.name).sort().map(name => {
+    .filter(entry => entry.isDirectory() && entry.name !== 'visual-asset-production').map(entry => entry.name).sort().map(name => {
       const base = new URL(`${name}/`, directory);
       const path = new URL('SKILL.md', base);
       const source = readFileSync(path, 'utf8');
@@ -25,4 +25,5 @@ export function installPackagedSkills(ctx, directory) {
   // Validate every entry before registering any of them.
   const skills = readPackagedSkills(directory);
   for (const skill of skills) ctx.effect(() => ctx.skills.register(skill));
+  return skills;
 }

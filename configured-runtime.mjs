@@ -5,7 +5,8 @@ export function createConfiguredRuntime(readConfig, factory = createRuntime) {
   function run(action) {
     const task = pending.then(async () => {
       if (closed) throw Error('Runtime is closing');
-      const config = validateConfig(readConfig());
+      // Discard the retired setting in saved profiles before comparing runtime configurations.
+      const { lazyTools, ...config } = validateConfig(readConfig());
       const next = JSON.stringify(config);
       if (signature !== next) {
         await runtime?.close();

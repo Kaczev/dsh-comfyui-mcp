@@ -9,7 +9,7 @@ const directory = new URL('../skills/', import.meta.url);
 
 test('all packaged skills retain metadata, body and resolvable resource bases', () => {
   const skills = readPackagedSkills(directory);
-  assert.deepEqual(skills.map(s => s.name), ['krea2-image-prompt', 'visual-asset-production']);
+  assert.deepEqual(skills.map(s => s.name), ['comfyui', 'krea2-image-prompt']);
   for (const skill of skills) {
     assert.equal(skill.source, 'runtime');
     assert.deepEqual(skill.invocation, { modelInvocable: true, userInvocable: true });
@@ -18,8 +18,22 @@ test('all packaged skills retain metadata, body and resolvable resource bases', 
     assert.ok(existsSync(join(skill.resourceBase.path, 'SKILL.md')));
   }
   const entry = readFileSync(new URL('../index.mjs', import.meta.url), 'utf8');
-  assert.match(entry, /inject=.*'skills'/);
-  assert.ok(entry.indexOf('installPackagedSkills(ctx,') < entry.indexOf('await mcp.apply'));
+  assert.match(entry, /inject\s*=.*'skills'/);
+  assert.match(entry, /ctx\.tools\.register\(definition, \{ when \}\)/);
+  assert.doesNotMatch(entry, /mcp\.apply|systemPrompt/);
+});
+
+test('skill discovery distinguishes the ComfyUI backend from the selected Krea model', () => {
+  const skills = Object.fromEntries(readPackagedSkills(directory).map(s => [s.name, s]));
+  const operations = skills['comfyui'], krea = skills['krea2-image-prompt'];
+  assert.match(operations.description, /requests ComfyUI|ComfyUI workflow has been selected/i);
+  assert.match(krea.description, /Krea 2 Turbo is explicitly requested or already selected/i);
+  for (const name of ['runtime', 'discover', 'call_tool']) assert.ok(operations.content.includes(`mcp__comfyui__${name}`));
+  for (const skill of [operations, krea]) {
+    for (const [, relative] of skill.content.matchAll(/\[[^\]]+\]\((\.\.?\/[^)]+)\)/g)) {
+      assert.ok(existsSync(join(skill.resourceBase.path, relative)), relative);
+    }
+  }
 });
 
 test('effects dispose exactly their own registrations and permit repeated enable', () => {

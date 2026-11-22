@@ -1,32 +1,24 @@
 ---
 name: visual-asset-production
-description: Use when producing UI icons, panels, characters, backgrounds or textures to choose generation, programmatic drawing and typography, then verify assets at target size in their actual context.
+description: Use when the user requests ComfyUI or a ComfyUI workflow has been selected. Inspect the runtime and upstream schema, check workflow prerequisites, submit an authorized job and verify its output.
 ---
 
-# Choose asset tools and verify in context
+# Run a ComfyUI workflow
 
-## Choose tools from the constraints
+Use the configured ComfyUI bridge. A request for an icon, illustration or transparent PNG does not by itself select this backend. The tools normally appear as `mcp__comfyui__runtime`, `mcp__comfyui__discover` and `mcp__comfyui__call_tool`. Only use `comfyui_load_tools` if the optional loader is visible instead. Loading tool definitions does not start ComfyUI.
 
-Read existing visual references and assets. Confirm dimensions, transparency, padding, scaling, anchors, colors and text requirements.
+## Inspect without starting
 
-- Prefer SVG, Canvas, programmatic drawing or typesetting for precise borders, nine-slice assets, layout, text and quantitative graphics.
-- Generative models suit illustrations, textures and shapes that allow variation. Check models, nodes and authorization first.
-- Reuse or lightly adapt suitable existing assets rather than redoing all assets without authorization.
+1. Call `runtime` with `{"action":"status"}` or `{"action":"test"}` to probe the configured service. If it is offline and the task is inspection only, report that state; do not start it.
+2. Call `discover` with a filter such as `{"search":"workflow"}`. Then pass the exact name alone, e.g. `{"name":"enqueue_workflow"}`, to read the upstream schema. Neither operation starts ComfyUI or loads models. A catalog entry describes an upstream tool; it does not prove a model or node is installed on this instance.
+3. Check the selected workflow against the intended service: API graph format, node types, exact model filenames, inputs, dimensions, seed and save node. For local Krea 2 Turbo, load [the Krea recipe](../krea2-image-prompt/SKILL.md) only after selecting that model. If a prerequisite is missing, report it; do not download models or install or update dependencies or nodes without explicit permission.
 
-Separate what may vary from what must be exact. Pseudo-text is not production copy. When text must be accurate, generate a text-free base and typeset real fonts afterwards.
+## Execute and verify
 
-## From sample to final asset
+Every `call_tool`, even an inventory or history query, first asks the runtime to connect or start. If the endpoint is offline, this may launch a configured loopback instance when `autoStart` is enabled. Do not use a business call as a harmless connectivity test. Confirm authorization for starting a process, using compute or paid resources, sending inputs to the configured service and writing outputs as applicable. Use `runtime start` only when startup is intended.
 
-Confirm composition with a small sample and record the model, workflow, inputs and seed. The same seed does not guarantee consistency across models, dimensions or versions. Do not turn historical measurements into permanent guarantees.
+Submit the checked graph with `call_tool` using the discovered `enqueue_workflow` schema (`action: "enqueue"`). Keep the returned `prompt_id`. If the call times out or returns no image, inspect history for that same job before resubmitting: a timeout does not cancel the queue entry. Use `discover` to check the schema of history and image retrieval tools. A queue ID proves submission, not completion.
 
-Sample colors from existing assets and fix outlines, materials, light direction and viewpoint. Reuse character descriptions and references, but still check each image's face, clothing and proportions. Complex props and components can be made in layers. Batch generation does not prove consistency.
+Match the history entry and output to the submitted job. Retrieve the image, decode it and check its format, dimensions and visible content at the intended size. For transparent assets, inspect alpha and edges on light and dark backgrounds. A server-side filename is not a verified local file. Report the image or verified destination, workflow and seed; distinguish queued, failed and unverified results. Preserve the original when saving a derivative.
 
-Read the [Krea skill](../krea2-image-prompt/SKILL.md) only when using Krea 2. Recheck its machine-specific facts before use; do not copy paths blindly or assume models exist. Read the current MCP schema first. Do not download models, install nodes or consume paid resources without authorization.
-
-## Post-processing
-
-Preserve originals and editable sources, and write to new paths. Before background removal, check whether subject and background share colors, then adjust thresholds from a conservative starting point. Load white-background-to-alpha when needed for white backgrounds. A white preview does not prove transparency.
-
-Check decoded format, dimensions, alpha and edges on light, dark and colored backgrounds at target size. Leave margin for strokes. After scaling, inspect fine lines, white fringes and color spill.
-
-Place assets back into the actual interface or scene. Check contrast, anchors, landing points, occlusion, seams and real copy. An HTML visual reference does not replace application acceptance. Report source files, outputs, verified sizes and remaining differences.
+`runtime stop` stops only a process owned by this plugin. `runtime free` unloads models from the connected instance and can disrupt other users. Do not stop a shared job or free shared resources as routine cleanup.

@@ -1,11 +1,11 @@
 ---
 name: krea2-image-prompt
-description: Prompt guide and pipeline for bitmap assets with local Krea 2 Turbo—UI icons, backgrounds, empty states, characters, textures and seamless patterns; includes chroma-key transparency, character consistency and troubleshooting.
+description: Use only when Krea 2 Turbo is explicitly requested or already selected for a ComfyUI job. Provides its native-node workflow, prompt recipes, sampling measurements and chroma-key checks.
 ---
 
 # Generate images with local Krea 2
 
-Load only after choosing Krea 2 for bitmap production. For tool selection and acceptance, see [Asset production](../visual-asset-production/SKILL.md). Machine facts and timings below are historical measurements. Check the current models, nodes and interfaces before use; do not automatically install missing models.
+Use this recipe after choosing Krea 2 Turbo. To use the ComfyUI bridge, load the separate `comfyui` skill in this agent. It covers discovery, startup permissions and output verification. See [Run a ComfyUI workflow](../comfyui/SKILL.md). The model inventory and timings below describe the measured installation, not the current service. Check that the named files and node types exist before submitting; do not install missing prerequisites without permission.
 
 ## Machine facts (measured locally in 2026-10)
 
@@ -63,14 +63,14 @@ This example keeps its background. If the icon needs transparency, describe it a
 
 ## Three invocation paths
 
-First check readiness. If ComfyUI does not respond at the configured address, check plugin configuration, then use the authorized startup method: `runtime start` (MCP) or the user's own ComfyUI launcher. Scripts default to `http://127.0.0.1:8188`; override with `COMFY_URL`. All scripts are under this skill's `scripts/` directory; use absolute paths or change into the skill directory first.
+Probe the configured service with `runtime status` or `runtime test`. Read the upstream tool schemas with `discover`; these checks do not start ComfyUI. Every `call_tool` may start an offline configured instance if `autoStart` is enabled, even for history. Only start a service or run a job within the user's authorization. Scripts contact `COMFY_URL` directly (default `http://127.0.0.1:8188`); they do not use the plugin's startup controller.
 
-1. **MCP (primary path)**: pass an API-format graph (`reference/workflow.json`) to `enqueue_workflow action:"enqueue"`, then retrieve images with `get_history action:"list"`. This path was verified to return a prompt_id and an image.
-2. **Quick scripts (fastest for local iteration)**:
+1. **MCP**: copy the [API graph](./reference/workflow.json). Set the prompt in node `4`, size in node `6`, seed in node `7` and output prefix in node `9`. Submit the graph through `call_tool` using the discovered `enqueue_workflow` schema and `action:"enqueue"`. Keep the returned `prompt_id`; look up that job in history before any retry. Retrieve its actual image and check the dimensions, content and intended destination. The historical run returned both a prompt ID and an image.
+2. **Direct HTTP scripts**: run from the skill directory. Replace `OUTPUT_DIR` below with a new writable project directory outside the installed package. Use an explicit seed.
    ```
-   python scripts/krea.py --prompt "..." --w 1024 --h 1024 --seed 12345
+   python scripts/krea.py --prompt "..." --w 1024 --h 1024 --seed 12345 --out OUTPUT_DIR
    ```
-   Supports `--lora krea2_darkbrush.safetensors:1.0`, `--init image.png --denoise 0.45` (img2img) and `--out DIR`. For batches: `python scripts/batch.py jobs.json`.
+   The script supports `--lora krea2_darkbrush.safetensors:1.0`. `--init image.png --denoise 0.45` uploads the file under its basename with overwrite enabled: check the destination, use a unique basename and obtain authorization for the upload. The batch runner (`python scripts/batch.py jobs.json`) submits every listed job and writes under `scripts/out`; use it only when the batch and destination are intended.
 3. **Transparent background**: choose a saturated key color that does not appear anywhere in the icon and is easy to distinguish from its outline and edge highlights. Use bright green when the icon has no green or nearby hues; for mint or teal artwork, try bright magenta if the icon has no pink or purple. Pick against the whole palette rather than inverting the main color.
 
    Append `centered with clear padding on all sides, on a flat solid bright magenta background covering the entire canvas, even lighting, no gradient, texture, cast shadow or glow, no text`, substituting the chosen color. Keep the icon clear of the frame so the script can sample the background from the border. Once the fill is uniform, run:

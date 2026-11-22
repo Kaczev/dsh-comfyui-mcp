@@ -18,14 +18,20 @@ test('bundle page contains status and official revisioned configuration together
  const tree=component.type(component.props);
  assert.equal(tree.type,'form');
  const labels=tree.children.filter(node=>node.type==='label');
- const toggle=tree.children[1].children[1];
- assert.equal(toggle.props.role,'switch');assert.equal(toggle.props['aria-checked'],true);
+ assert.equal(labels.length,6);
+ assert.doesNotMatch(JSON.stringify(tree), /"role":"switch"/);
  assert.equal(labels[1].children[1].type,'select');
  assert.equal(labels[2].children[1].props.placeholder,'包含 main.py 的目录');
  await tree.props.onSubmit({preventDefault(){}});
  assert.equal(writes.length,1);assert.equal(writes[0][1],1);
- assert.equal(writes[0][0].length,7);
- assert.equal(writes[0][0].find(x=>x.path[0]==='lazyTools').value,true);
+ assert.equal(writes[0][0].length,6);
+ assert.equal(writes[0][0].some(x=>x.path[0]==='lazyTools'),false);
  assert.equal(writes[0][0].find(x=>x.path[0]==='autoStart').value,false);
  assert.equal(writes[0][0].find(x=>x.path[0]==='url').value,'http://127.0.0.1:8188');
+ // Old profiles still save runtime settings without projecting the retired toggle.
+ state.value={lazyTools:true};
+ const saved=component.type(component.props);
+ assert.doesNotMatch(JSON.stringify(saved), /"role":"switch"/);
+ await saved.props.onSubmit({preventDefault(){}});
+ assert.equal(writes[1][0].some(x=>x.path[0]==='lazyTools'),false);
 });

@@ -1,6 +1,6 @@
 {
   "name": "dsh-comfyui-mcp",
-  "version": "0.1.11",
+  "version": "0.2.0",
   "description": "ComfyUI connection and safe on-demand lifecycle for DSH; powered by artokun/comfyui-mcp.",
   "type": "module",
   "license": "MIT",
@@ -18,7 +18,7 @@
   },
   "engines": {
     "node": ">=22",
-    "dsh": ">=0.2.1-rc.3 <0.3.0"
+    "dsh": ">=0.2.2-rc.5 <0.3.0"
   },
   "exports": {
     ".": "./index.mjs",
@@ -29,7 +29,9 @@
   },
   "files": [
     "packaged-skills.mjs",
-    "skills",
+    "skills/comfyui",
+    "skills/krea2-image-prompt",
+    "upstream.mjs",
     "index.mjs",
     "lazy-tools.mjs",
     "runtime.mjs",
@@ -60,7 +62,7 @@
     }
   },
   "scripts": {
-    "check": "node --check index.mjs && node --check runtime.mjs && node --check configured-runtime.mjs && node --check server.mjs && node --check client.js && node --check lazy-tools.mjs && node --check tool-router.mjs && node --check packaged-skills.mjs",
+    "check": "node --check index.mjs && node --check runtime.mjs && node --check configured-runtime.mjs && node --check upstream.mjs && node --check server.mjs && node --check client.js && node --check lazy-tools.mjs && node --check tool-router.mjs && node --check packaged-skills.mjs",
     "test": "node --test test/*.test.mjs",
     "build": "npm run check",
     "pack:check": "npm pack --dry-run --json"
@@ -70,7 +72,8 @@
     "@modelcontextprotocol/sdk": "~1.32.1"
   },
   "peerDependencies": {
-    "@deepseek-ai/dsh-mcp-client": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-mcp-client": ">=0.2.2-rc.5 <0.3.0",
+    "@deepseek-ai/dsh-skill": ">=0.2.2-rc.5 <0.3.0",
     "@deepseek-ai/schemastery": "~3.18.5"
   }
 }

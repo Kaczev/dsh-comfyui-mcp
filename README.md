@@ -8,12 +8,12 @@ ComfyUI 工具来自 [artokun/comfyui-mcp](https://github.com/artokun/comfyui-mc
 
 ## 安装与配置
 
-需要 Node.js 22 及兼容的 DSH（当前声明为 `>=0.2.1-rc.3 <0.3.0`）。在 DSH 插件管理器中安装 `dsh-comfyui-mcp`（指定版本可填 `dsh-comfyui-mcp@0.1.11`），然后启用组件。也支持安装本地目录或 `.tgz`。不要另外添加同名 MCP 桥。
+本版需要 Node.js 22 和支持条件工具注册的 DSH（`>=0.2.2-rc.5 <0.3.0`）。在 DSH 插件管理器中安装支持该技能入口的 `dsh-comfyui-mcp`，然后启用组件。也支持安装本地目录或 `.tgz`。不要另外添加同名 MCP 桥。
 
 打开「插件 → ComfyUI MCP」，点击「测试连接」探测现有服务。在同页下方的「运行配置」表单设置：
 
 - `url`：默认 `http://127.0.0.1:8188`，支持已有 HTTP(S) 地址，不允许 URL 内嵌凭据。
-- `autoStart`：默认关闭；开启后首次执行业务工具才允许启动本地 ComfyUI。
+- `autoStart`：默认关闭；开启后，执行 `runtime start` 或通过 `call_tool` 调用上游工具时，插件可在服务离线且本地启动条件满足时启动 ComfyUI。
 - `comfyuiDir`：包含 `main.py` 的绝对目录。
 - `pythonPath`：已安装依赖的 Python 可执行文件绝对路径。
 - `launchArgs`：额外参数数组，默认空。支持显存/精度选项、`--disable-xformers`、`--use-pytorch-cross-attention`、`--preview-method` 等白名单选项；拒绝监听地址、端口覆盖与参数缩写。
@@ -21,23 +21,29 @@ ComfyUI 工具来自 [artokun/comfyui-mcp](https://github.com/artokun/comfyui-mc
 
 本地启动仅接受回环 HTTP 地址，固定禁用浏览器自动打开、自定义节点和 API 节点。已有远程实例不受这些启动参数影响。模型与 Python 环境需由用户事先准备，本插件不自动安装或更新它们。
 
-## 工具懒加载
+## 工具入口
 
-`lazyTools` 默认开启。代理最初只看到 `comfyui_load_tools`；调用后为当前代理加载 `runtime`、`discover`、`call_tool`。加载不会启动 ComfyUI 或加载模型，其他代理保持自己的加载状态。代理重建后可再次加载。
+新代理的工具列表中没有 ComfyUI 入口。需要使用时，用户可以输入 `/comfyui`，或由代理调用 `skill` 并传入 `{"name":"comfyui"}`。成功加载随包技能后，该代理随后可使用预设允许的 `mcp__comfyui__runtime`、`mcp__comfyui__discover` 和 `mcp__comfyui__call_tool`。下文省略公共前缀。
 
-关闭「工具懒加载」并保存，代理下一步便直接获得这 3 个工具。开关与 `autoStart` 独立：前者控制工具定义何时进入模型上下文，后者控制是否允许启动本地进程。
+子代理和重建的代理需自行加载技能。只加载 Krea 配方不会启用工具。旧设置 `lazyTools` 已停止生效，可以从自管配置中移除。加载技能不会启动服务或加载模型，`autoStart` 仍单独控制进程启动。
 
-未加载时只有 1 个入口；加载后保留入口及 3 个工具。0.1.8 将搜索目录和读取参数合并为 `discover`，原来的 `list_tools`、`describe_tool` 不再出现在工具列表中；服务器仍接受旧名称，供已记录的 MCP 调用重放。插件不直接改写模型请求字段，也不承诺固定 token 降幅。
+原始 MCP 请求仍可使用旧名称 `list_tools`、`describe_tool` 重放发现调用；服务器不再把它们列为单独入口。
 
 ## 使用
 
-用 `discover` 的 `search` / `category` 筛选目录，或只传 `name` 读取指定工具的完整 schema。这两种操作都不启动 ComfyUI 或加载模型。然后用 `call_tool` 执行业务工具。原生 Krea2 API 工作流使用上游 `enqueue_workflow`；模型名称和工作流须匹配现有安装。结果保留上游 MCP 内容，包括图片和保存路径。本机 Krea 2 的提示词、采样参数与工作流见下文 [技能：krea2-image-prompt](#技能krea2-image-prompt)。
+| 目的 | 调用 | 运行影响 |
+| --- | --- | --- |
+| 检查服务 | `runtime`：`{"action":"status"}` 或 `{"action":"test"}` | 探测配置地址，不启动 ComfyUI。 |
+| 查上游目录和参数 | `discover`：`{"search":"workflow"}`；再单独传 `{"name":"enqueue_workflow"}` | 不启动 ComfyUI 或加载模型。查到工具不代表目标实例已安装所需模型和节点。 |
+| 执行上游工具 | `call_tool`：传 `name` 和符合该工具 schema 的 `args` | 每次调用都会先确认服务可用，包括查询历史；服务离线且允许本地按需启动时，可能启动进程。 |
 
-`runtime` 提供 `status`、`test`、`start`、`stop`、`free`。状态查询和连接测试不启动进程。开启按需启动且服务未运行时，页面显示「未运行 · 按需启动待命」；执行生图工具时才会启动。生成完成后使用 `stop` 释放插件自有进程；`free` 请求当前连接实例卸载模型，可能影响该实例的其他使用者。
+提交前核对 API 工作流的节点、模型文件名、输入和保存位置。用 `enqueue_workflow` 提交后保留 `prompt_id`，按该 ID 查历史并取回图片。超时时先查原任务，不要重复排队。拿到队列号或服务器路径不等于已经得到本地图片；交付前应打开实际输出，核对内容、尺寸和格式。
+
+`runtime start` 用于有意启动；`runtime stop` 只停止插件自有进程。`runtime free` 会请求当前实例卸载模型；共享实例上不要未经许可释放显存。
 
 ## 模型与工作流的决定权
 
-插件和上游都不替你选模型。四条路径的决定方各不相同：
+本插件不指定默认模型。提交现有工作流时，模型由图中的节点决定；调用上游的快捷出图工具时，上游会自行选择 checkpoint。四种调用方式的区别如下：
 
 - `enqueue_workflow`（`action:"enqueue"`）：由调用方提交的 API 工作流决定，`UNETLoader` / `CLIPLoader` / `VAELoader` 里写什么文件就加载什么；seed 按原值使用，不随机化。
 - `generate_image`（`action:"image"`）：由上游自建 txt2img 图并**自动挑选 checkpoint**——读 safetensors 头部判断是否含文本编码器，跳过视频类模型；其余参数来自默认值（配置文件 → `COMFYUI_DEFAULT_*` 环境变量 → 运行时 `get_defaults`，优先级递增）。没有可用 checkpoint 时会直接报错。Krea 2 是 UNet + CLIP + VAE 三件套、不是 checkpoint 模型，因此**不走这条路径**。
@@ -46,9 +52,14 @@ ComfyUI 工具来自 [artokun/comfyui-mcp](https://github.com/artokun/comfyui-mc
 
 默认值配置文件位于 `%XDG_CONFIG_HOME%`（缺省 `~/.config`）下的 `comfyui-mcp/config.json`。
 
-## 技能：krea2-image-prompt
+## 随包技能
 
-`skills/krea2-image-prompt/` 是一份面向本机 Krea 2 Turbo 的出图技能，教会代理「本机这套模型该怎么写提示词、怎么拼工作流、怎么后处理」，覆盖 UI 图标、背景、空状态、角色立绘、纹理图案等位图素材场景。
+- [comfyui](skills/comfyui/SKILL.md)：任务明确使用 ComfyUI 或已经选定 ComfyUI 工作流时，指导代理检查服务、读取 schema、提交任务并验证输出。升级时请将原来的 `/visual-asset-production` 改为 `/comfyui`。
+- [krea2-image-prompt](skills/krea2-image-prompt/SKILL.md)：仅在明确要求或已经选定 Krea 2 Turbo 时使用。包含该模型的提示词配方、原生节点工作流、采样对照和历史耗时；普通图标、背景、角色或纹理需求本身不会选定 Krea。
+
+插件启用时注册两个技能，禁用或卸载时撤销自己的注册；正文通过 `skill` 按需读取，也可用 `/comfyui` 或 `/krea2-image-prompt` 显式调用。资源路径以包内技能目录为准。用户已有的同名技能遵循宿主优先级，插件不会改写它们。迁移旧副本时，先核对来源，需要备份的副本可移出技能扫描目录。
+
+### Krea 2 Turbo 资源
 
 ```
 skills/krea2-image-prompt/
@@ -59,15 +70,11 @@ skills/krea2-image-prompt/
 └── scripts/                  # krea.py 出图、batch.py 批量、key.py 色键抠透明底
 ```
 
-**路径与发现机制。** 这些技能随 npm 包分发，由插件启用时注册，禁用或卸载时撤销；正文仍按需加载，资源路径指向包内目录。无需另建用户级副本或目录联接。旧版已有的同名本地入口应核对来源后移到技能扫描范围之外备份，不删除技能正文。独立用户技能不会被插件改写或删除；同名条目遵循宿主优先级，禁用插件后用户条目仍可使用。跨插件技能引用需要启用对应插件。
-
-**触发方式。** 任务涉及「画图标 / 画背景 / 生成角色素材 / 做纹理」时自动加载；也可用 `skill` 工具或 `/krea2-image-prompt` 显式调用。
-
-**直接使用脚本。**
+**直接使用脚本。** 先确认 `COMFY_URL` 指向预期服务；将 `OUTPUT_DIR` 换成任务允许写入的新目录。
 
 ```sh
 cd skills/krea2-image-prompt
-python scripts/krea.py --prompt "a flat two-color vector icon of a whale" --w 1024 --h 1024
+python scripts/krea.py --prompt "a flat two-color vector icon of a whale" --w 1024 --h 1024 --seed 12345 --out OUTPUT_DIR
 python scripts/key.py in.png out.png      # 纯色底 → 透明 PNG
 ```
 
@@ -99,15 +106,10 @@ DSH 提供的 peer 包需在插件运行环境中可解析。安装发布包时�
 
 上游依赖审计发现 `undici` 的已知高风险通告；本次保留用户指定的上游版本，未自动升级。仅连接受信任的 ComfyUI 服务；回环默认值不能替代服务端访问控制。上游部分工具可以管理文件、模型或依赖，执行安装/更新类操作前必须取得用户明确许可。
 
-自动测试覆盖配置保存、待命与故障状态、配置校验、不启动的探测、外部进程保护、并发启动与自有进程清理。已在 DSH Desktop 验证安装、重启后的配置页面、保存参数、本地启动及停止；Krea2 768 × 768 工作流执行成功，并通过 MCP 取回图片。插件管理器的卸载与重装操作已成功；真实运行期间禁用/卸载的完整清理验收尚未完成。真实进程测试需按测试文件中的环境变量显式启用，默认跳过。
+自动测试覆盖工具可见性、代理预设限制、配置保存、故障状态、配置校验、不启动的探测、外部进程保护、并发启动与自有进程清理。真实进程测试需要按测试文件中的环境变量显式启用，默认跳过。
+
+此前的 DSH Desktop 实测验证过安装、重启后的配置页面、保存参数、本地启动和停止，以及插件管理器的卸载与重装。当时的 Krea 2 工作流生成了 768 × 768 图片，并通过 MCP 取回。上述记录不代表每次修改都重跑了桌面或 GPU 验收；真实运行期间禁用或卸载的完整清理仍待验证。
 
 ## 许可证
 
 本项目采用 MIT。上游 `comfyui-mcp` 为 MIT，版权归 Arthur R. Longbottom (artokun)。参见 `THIRD_PARTY_NOTICES.md`。依赖通过包管理器安装，不将上游依赖代码或模型整合进发布包；各依赖许可证继续适用。
-
-## 按需技能目录
-
-- [visual-asset-production](skills/visual-asset-production/SKILL.md)：工具选择及目标场景验收。
-- [krea2-image-prompt](skills/krea2-image-prompt/SKILL.md)：Krea 工作流及历史实测。
-
-这些技能随 npm 包分发，由插件启用时注册，禁用或卸载时撤销；正文仍按需加载，资源路径指向包内目录。无需另建用户级副本或目录联接。旧版已有的同名本地入口应核对来源后移到技能扫描范围之外备份，不删除技能正文。独立用户技能不会被插件改写或删除；同名条目遵循宿主优先级，禁用插件后用户条目仍可使用。跨插件技能引用需要启用对应插件。
